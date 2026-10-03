@@ -33,6 +33,20 @@ public sealed class ClasificadorFuncionesGemini
 
     public ClasificadorFuncionesGemini(ConfiguracionGemini config) => _config = config;
 
+    /// <summary>Comprueba que la clave sea válida y que el modelo exista, sin gastar una clasificación.</summary>
+    public static async Task VerificarAsync(string apiKey, string modelo, CancellationToken ct = default)
+    {
+        using var mensaje = new HttpRequestMessage(HttpMethod.Get, $"{UrlBase}{Uri.EscapeDataString(modelo)}");
+        mensaje.Headers.Add("x-goog-api-key", apiKey);
+
+        using var respuesta = await Http.SendAsync(mensaje, ct);
+        if (!respuesta.IsSuccessStatusCode)
+        {
+            string cuerpo = await respuesta.Content.ReadAsStringAsync(ct);
+            throw new InvalidOperationException(DescribirError(respuesta.StatusCode, cuerpo));
+        }
+    }
+
     public async Task<FuncionesEvaluadas> ClasificarAsync(IReadOnlyList<string> rutasPdf, CancellationToken ct = default)
     {
         if (rutasPdf.Count == 0)

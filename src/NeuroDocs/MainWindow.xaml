@@ -21,7 +21,11 @@
             <!-- 6 botones -->
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="NeuroDocs" FontSize="28" FontWeight="Bold" Margin="0,0,0,20"/>
+        <DockPanel Grid.Row="0" Margin="0,0,0,20">
+            <Button Content="⚙ Configuración" DockPanel.Dock="Right" Width="140" Height="32"
+            VerticalAlignment="Center" Click="ConfiguracionButton_Click"/>
+            <TextBlock Text="NeuroDocs" FontSize="28" FontWeight="Bold"/>
+        </DockPanel>
 
         <Grid Grid.Row="1" Margin="0,0,0,10">
             <Grid.ColumnDefinitions>

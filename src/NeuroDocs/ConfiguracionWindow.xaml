@@ -1,0 +1,29 @@
+﻿<Window x:Class="NeuroDocs.ConfiguracionWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Configuración" Width="520" SizeToContent="Height"
+        ResizeMode="NoResize" WindowStartupLocation="CenterOwner">
+
+    <StackPanel Margin="20">
+        <TextBlock Text="Clave de API de Gemini" FontSize="15" FontWeight="SemiBold"/>
+        <PasswordBox x:Name="ApiKeyBox" Height="30" Margin="0,6,0,4" VerticalContentAlignment="Center"/>
+        <TextBlock x:Name="EstadoClaveText" Foreground="Gray" TextWrapping="Wrap"/>
+
+        <TextBlock Text="Modelo" FontSize="15" FontWeight="SemiBold" Margin="0,18,0,0"/>
+        <ComboBox x:Name="ModeloCombo" IsEditable="True" Height="30" Margin="0,6,0,4"
+                  VerticalContentAlignment="Center"/>
+        <TextBlock Foreground="Gray" TextWrapping="Wrap"
+                   Text="Si un modelo deja de estar disponible, escribe el nombre del nuevo."/>
+
+        <TextBlock x:Name="ResultadoPruebaText" TextWrapping="Wrap" Margin="0,18,0,0"/>
+
+        <DockPanel Margin="0,18,0,0" LastChildFill="False">
+            <Button x:Name="ProbarButton" Content="Probar conexión" Width="130" Height="32"
+                    DockPanel.Dock="Left" Click="ProbarButton_Click"/>
+            <Button Content="Cancelar" Width="100" Height="32" DockPanel.Dock="Right"
+                    Margin="10,0,0,0" IsCancel="True"/>
+            <Button Content="Guardar" Width="100" Height="32" DockPanel.Dock="Right"
+                    IsDefault="True" Click="GuardarButton_Click"/>
+        </DockPanel>
+    </StackPanel>
+</Window>

@@ -8,7 +8,10 @@ namespace NeuroDocs.Services;
 /// </summary>
 public sealed class ConfiguracionGemini
 {
-    private const string ModeloPorDefecto = "gemini-3.8-flash";
+    public const string ModeloPorDefecto = "gemini-3.8-flash";
+    /// <summary>Opciones del selector. Se puede escribir cualquier otro nombre si Google cambia de modelos.</summary>
+    public static readonly IReadOnlyList<string> ModelosSugeridos =
+        ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.5-flash"];
 
     private static readonly string RutaInstrucciones =
         Path.Combine(AppContext.BaseDirectory, "IA", "InstruccionesFunciones.txt");
@@ -24,19 +27,25 @@ public sealed class ConfiguracionGemini
         Instrucciones = instrucciones;
     }
 
-    /// <summary>Se carga en cada uso: así se pueden editar las instrucciones sin reiniciar la app.</summary>
+    /// <summary>
+    /// Prioridad: lo guardado en la ventana de Configuración y, como respaldo,
+    /// las variables de entorno (útiles en desarrollo).
+    /// </summary>
     public static ConfiguracionGemini Cargar()
     {
-        string apiKey = LeerVariable("GEMINI_API_KEY")
+        var ajustes = AjustesUsuario.Cargar();
+
+        string apiKey = ajustes.ObtenerApiKey()
+            ?? LeerVariable("GEMINI_API_KEY")
             ?? throw new InvalidOperationException(
-                "No se encontró la clave de Gemini. Configura la variable de entorno GEMINI_API_KEY.");
+                "No hay una clave de Gemini configurada. Ingrésala en Configuración.");
 
         if (!File.Exists(RutaInstrucciones))
             throw new FileNotFoundException($"No se encontró el archivo de instrucciones:\n{RutaInstrucciones}");
 
         return new ConfiguracionGemini(
             apiKey,
-            LeerVariable("GEMINI_MODEL") ?? ModeloPorDefecto,
+            NoVacia(ajustes.Modelo) ?? LeerVariable("GEMINI_MODEL") ?? ModeloPorDefecto,
             File.ReadAllText(RutaInstrucciones));
     }
 

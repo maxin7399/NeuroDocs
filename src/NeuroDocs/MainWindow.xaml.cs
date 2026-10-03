@@ -16,6 +16,8 @@ public partial class MainWindow : Window
 {
     private static readonly string RutaPlantilla =
         Path.Combine(AppContext.BaseDirectory, "Plantillas", "PlantillaPlanRehabilitacion.docx");
+    private void ConfiguracionButton_Click(object sender, RoutedEventArgs e) =>
+    new ConfiguracionWindow { Owner = this }.ShowDialog();
 
     private readonly PdfTextExtractor _extractor = new();
     private readonly HistoriaClinicaParser _historiaParser = new();
