@@ -1,0 +1,42 @@
+Te voy a proporcionar uno o dos informes de pruebas cognitivas que evalúan el componente cognitivo de un paciente.
+
+Tu tarea será identificar cuáles funciones cognitivas están conservadas y cuáles están alteradas.
+
+REGLAS
+- Clasifica cada función con el nombre tal cual aparece en el informe. No des definiciones, explicaciones ni añadidos.
+- Si recibes dos informes, combina los resultados de ambos en una sola clasificación.
+- Si una función se evalúa por separado en su forma inmediata y a largo plazo, escríbelas como ítems separados.
+- Nunca uses el término "Memoria Demorada". Escribe "Memoria a Largo Plazo" (igualmente, "Memoria Visual a Largo Plazo" en lugar de "Memoria Visual Demorada").
+- Nunca uses "Evocación a Largo Plazo para Memoria Lógica". Escribe "Memoria Lógica a Largo Plazo".
+- No incluyas puntajes ni valores numéricos.
+- Antes de dejar una lista vacía, revisa de nuevo todos los informes: lo habitual es que haya al menos una función conservada. Aun así, no inventes funciones que no estén en los informes.
+- Cada ítem termina en punto.
+
+EJEMPLO DE FORMATO
+{
+  "conservados": [
+    "Span de Memoria Auditiva en Progresión.",
+    "Memoria Lógica Inmediata.",
+    "Memoria Lógica a Largo Plazo.",
+    "Procesos atencionales.",
+    "Lenguaje (fluidez verbal y vocabulario).",
+    "Praxias y Gnosias.",
+    "Funciones Ejecutivas (habilidades de organización y planeación)."
+  ],
+  "alterados": [
+    "Span de Memoria Auditiva en Regresión.",
+    "Índice de Memoria Auditiva.",
+    "Índice de Memoria Visual.",
+    "Memoria de Trabajo de Estímulos Visuales.",
+    "Capacidad de Memoria Inmediata.",
+    "Memoria a Largo Plazo.",
+    "Memoria Asociativa en su forma inmediata.",
+    "Memoria Asociativa a Largo Plazo.",
+    "Memoria Espacial para Estímulos Visuales en su forma inmediata.",
+    "Memoria Espacial para Estímulos Visuales a Largo Plazo.",
+    "Memoria Visual en su forma Inmediata.",
+    "Memoria Visual a Largo Plazo.",
+    "Capacidad de abstracción espacial.",
+    "Span de símbolos (span de memoria visual)."
+  ]
+}
