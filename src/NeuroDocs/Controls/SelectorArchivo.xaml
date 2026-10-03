@@ -1,0 +1,38 @@
+﻿<UserControl x:Class="NeuroDocs.Controls.SelectorArchivo"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             AllowDrop="True"
+             DragOver="OnDragOver" DragLeave="OnDragLeave" Drop="OnDrop">
+
+    <Border x:Name="Contenedor" CornerRadius="6" Padding="10,8" Margin="0,0,0,6"
+            Background="Transparent" BorderThickness="1" BorderBrush="Transparent">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock x:Name="IconoText" Style="{StaticResource IconoStyle}" FontSize="20"
+                       Foreground="{StaticResource TextoSecundarioBrush}" Margin="0,0,12,0" Text="&#xE8A5;"/>
+
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock x:Name="TituloText" FontWeight="SemiBold"/>
+                <TextBlock x:Name="ArchivoText" Style="{StaticResource TextoSecundarioStyle}"/>
+            </StackPanel>
+
+            <TextBlock Grid.Column="2" x:Name="CheckText" Style="{StaticResource IconoStyle}"
+                       Foreground="{StaticResource ExitoBrush}" Text="&#xE73E;" Margin="8,0"
+                       Visibility="Collapsed"/>
+
+            <StackPanel Grid.Column="3" Orientation="Horizontal">
+                <Button x:Name="QuitarButton" ToolTip="Quitar archivo" Visibility="Collapsed"
+                        Margin="0,0,6,0" Click="QuitarButton_Click">
+                    <TextBlock Style="{StaticResource IconoStyle}" FontSize="12" Text="&#xE711;"/>
+                </Button>
+                <Button Content="Seleccionar…" Click="SeleccionarButton_Click"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

@@ -1,9 +1,95 @@
 ﻿<Application x:Class="NeuroDocs.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:NeuroDocs"
-             StartupUri="MainWindow.xaml">
+             StartupUri="MainWindow.xaml"
+             ThemeMode="Dark">
     <Application.Resources>
-         
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Temas/PaletaOscura.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Windows 11 usa la primera fuente; Windows 10, la segunda (mismos códigos de ícono). -->
+            <FontFamily x:Key="FuenteIconos">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
+
+            <Style x:Key="TarjetaStyle" TargetType="Border">
+                <Setter Property="Background" Value="{StaticResource FondoTarjetaBrush}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource BordeTarjetaBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="CornerRadius" Value="8"/>
+                <Setter Property="Padding" Value="18"/>
+                <Setter Property="Margin" Value="0,0,0,16"/>
+            </Style>
+
+            <Style x:Key="NumeroPasoStyle" TargetType="Border">
+                <Setter Property="Width" Value="26"/>
+                <Setter Property="Height" Value="26"/>
+                <Setter Property="CornerRadius" Value="13"/>
+                <Setter Property="Background" Value="{StaticResource AcentoBrush}"/>
+                <Setter Property="Margin" Value="0,0,10,0"/>
+            </Style>
+
+            <Style x:Key="TituloPasoStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="16"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+
+            <Style x:Key="TextoSecundarioStyle" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{StaticResource TextoSecundarioBrush}"/>
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            </Style>
+
+            <Style x:Key="IconoStyle" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="{StaticResource FuenteIconos}"/>
+                <Setter Property="FontSize" Value="16"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+
+            <Style x:Key="BotonPrincipalStyle" TargetType="Button">
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="Background" Value="{StaticResource AcentoBrush}"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Padding" Value="20,9"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="Fondo" Background="{TemplateBinding Background}"
+                                    CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Fondo" Property="Background" Value="{StaticResource AcentoHoverBrush}"/>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="Fondo" Property="Opacity" Value="0.85"/>
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter TargetName="Fondo" Property="Background" Value="{StaticResource BotonDeshabilitadoBrush}"/>
+                                    <Setter Property="Foreground" Value="{StaticResource TextoSecundarioBrush}"/>
+                                    <Setter Property="Cursor" Value="Arrow"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="BotonEnlaceStyle" TargetType="Button">
+                <Setter Property="Foreground" Value="{StaticResource EnlaceBrush}"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

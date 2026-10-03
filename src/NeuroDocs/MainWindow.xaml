@@ -1,139 +1,213 @@
 ﻿<Window x:Class="NeuroDocs.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="NeuroDocs" Height="820" Width="900">
+        xmlns:c="clr-namespace:NeuroDocs.Controls"
+        Title="NeuroDocs" Height="800" MinWidth="1050" MinHeight="680"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource FondoVentanaBrush}" Width="1035" WindowState="Maximized"
+        Foreground="{StaticResource TextoPrincipalBrush}">
 
-    <Grid Margin="30">
+    <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <!-- 0 título -->
-            <RowDefinition Height="Auto"/>
-            <!-- 1 historia clínica -->
-            <RowDefinition Height="Auto"/>
-            <!-- 2 orden de servicio -->
-            <RowDefinition Height="Auto"/>
-            <!-- 3 emisión del plan -->
-            <RowDefinition Height="Auto"/>
-            <!-- 4 informes para la IA -->
+            <!-- encabezado -->
             <RowDefinition Height="*"/>
-            <!-- 5 funciones evaluadas -->
+            <!-- contenido -->
             <RowDefinition Height="Auto"/>
-            <!-- 6 botones -->
+            <!-- barra de avisos -->
         </Grid.RowDefinitions>
 
+        <!-- ───── Encabezado ───── -->
         <DockPanel Grid.Row="0" Margin="0,0,0,20">
-            <Button Content="⚙ Configuración" DockPanel.Dock="Right" Width="140" Height="32"
-            VerticalAlignment="Center" Click="ConfiguracionButton_Click"/>
-            <TextBlock Text="NeuroDocs" FontSize="28" FontWeight="Bold"/>
+            <Button DockPanel.Dock="Right" VerticalAlignment="Center" Click="ConfiguracionButton_Click">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Style="{StaticResource IconoStyle}" Text="&#xE713;" Margin="0,0,8,0"/>
+                    <TextBlock Text="Configuración"/>
+                </StackPanel>
+            </Button>
+            <StackPanel>
+                <TextBlock Text="NeuroDocs" FontSize="26" FontWeight="Bold"/>
+                <TextBlock Text="Plan individualizado de rehabilitación neuropsicológica cognitiva"
+                           Style="{StaticResource TextoSecundarioStyle}" FontSize="13"/>
+            </StackPanel>
         </DockPanel>
 
-        <Grid Grid.Row="1" Margin="0,0,0,10">
+        <!-- ───── Contenido: pasos a la izquierda, funciones a la derecha ───── -->
+        <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="200"/>
-                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="480"/>
+                <ColumnDefinition Width="20"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Text="Historia clínica (ECC)" FontSize="15" VerticalAlignment="Center"/>
-            <Button Grid.Column="1" Content="Seleccionar..." Width="120" Height="32"
-                    Click="SeleccionarHistoriaButton_Click"/>
-            <TextBlock Grid.Column="2" x:Name="HistoriaRutaText" Text="Ninguno" Margin="12,0,0,0"
-                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+
+                    <!-- Paso 1 -->
+                    <Border Style="{StaticResource TarjetaStyle}">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                <Border Style="{StaticResource NumeroPasoStyle}">
+                                    <TextBlock Text="1" Foreground="White" FontWeight="Bold"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="Documentos del paciente" Style="{StaticResource TituloPasoStyle}"/>
+                            </StackPanel>
+
+                            <c:SelectorArchivo x:Name="HistoriaSelector" Titulo="Historia clínica (ECC)"
+                                               RutaCambiada="DocumentoPaciente_RutaCambiada"/>
+                            <c:SelectorArchivo x:Name="OrdenSelector" Titulo="Orden de servicio (CUPS)"
+                                               RutaCambiada="DocumentoPaciente_RutaCambiada"/>
+
+                            <Grid Margin="10,4,10,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Style="{StaticResource IconoStyle}" FontSize="20" Text="&#xE787;"
+                                           Foreground="{StaticResource TextoSecundarioBrush}" Margin="0,0,12,0"/>
+                                <TextBlock Grid.Column="1" Text="Emisión del plan" FontWeight="SemiBold"
+                                           VerticalAlignment="Center"/>
+                                <ComboBox Grid.Column="2" x:Name="MesCombo" Width="140"
+                                          DisplayMemberPath="Nombre" SelectedValuePath="Numero"/>
+                                <ComboBox Grid.Column="3" x:Name="AnioCombo" Width="100" Margin="8,0,0,0"/>
+                            </Grid>
+
+                            <!-- Resumen del paciente (aparece al leer los documentos) -->
+                            <Border x:Name="ResumenBorder" Visibility="Collapsed" Margin="0,14,0,0"
+                                    Background="{StaticResource AcentoSuaveBrush}" CornerRadius="6" Padding="12,10">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Style="{StaticResource IconoStyle}" FontSize="20" Text="&#xE77B;"
+                                               Foreground="{StaticResource AcentoBrush}" Margin="0,0,12,0"/>
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock x:Name="ResumenNombreText" FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock x:Name="ResumenDetalleText" Style="{StaticResource TextoSecundarioStyle}"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="2" x:Name="VerDatosButton" Content="Ver datos"
+                                            Style="{StaticResource BotonEnlaceStyle}" Margin="12,0,0,0"
+                                            Click="VerDatosButton_Click"/>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Paso 2 -->
+                    <Border Style="{StaticResource TarjetaStyle}">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <Border Style="{StaticResource NumeroPasoStyle}">
+                                    <TextBlock Text="2" Foreground="White" FontWeight="Bold"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="Funciones evaluadas con IA" Style="{StaticResource TituloPasoStyle}"/>
+                            </StackPanel>
+                            <TextBlock Style="{StaticResource TextoSecundarioStyle}" TextWrapping="Wrap"
+                                       Margin="36,0,0,10"
+                                       Text="Los informes solo se envían a Gemini para sugerir conservados y alterados."/>
+
+                            <c:SelectorArchivo x:Name="Informe1Selector" Titulo="Informe 1" PermiteQuitar="True"
+                                               RutaCambiada="Informe_RutaCambiada"/>
+                            <c:SelectorArchivo x:Name="Informe2Selector" Titulo="Informe 2 (opcional)"
+                                               PermiteQuitar="True" RutaCambiada="Informe_RutaCambiada"/>
+
+                            <Button x:Name="SugerirIAButton" HorizontalAlignment="Left" Margin="10,8,0,0"
+                                    IsEnabled="False" Click="SugerirIAButton_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource IconoStyle}" Text="&#xEA80;" Margin="0,0,8,0"/>
+                                    <TextBlock Text="Sugerir con IA"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Paso 3 -->
+                    <Border Style="{StaticResource TarjetaStyle}">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                                <Border Style="{StaticResource NumeroPasoStyle}">
+                                    <TextBlock Text="3" Foreground="White" FontWeight="Bold"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="Generar" Style="{StaticResource TituloPasoStyle}"/>
+                            </StackPanel>
+                            <DockPanel>
+                                <Button x:Name="GenerarButton" DockPanel.Dock="Right" IsEnabled="False"
+                                        Style="{StaticResource BotonPrincipalStyle}" Click="GenerarButton_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Style="{StaticResource IconoStyle}" Text="&#xE74E;" Margin="0,0,8,0"/>
+                                        <TextBlock Text="Generar plan PDF"/>
+                                    </StackPanel>
+                                </Button>
+                                <CheckBox x:Name="GuardarWordCheckBox" Content="Guardar también el Word (.docx)"
+                                          VerticalAlignment="Center" IsChecked="True"/>
+                            </DockPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Funciones evaluadas -->
+            <Border Grid.Column="2" Style="{StaticResource TarjetaStyle}" Margin="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <DockPanel Grid.Row="0" Margin="0,0,0,8">
+                        <TextBlock x:Name="ConservadosConteo" DockPanel.Dock="Right"
+                                   Style="{StaticResource TextoSecundarioStyle}" VerticalAlignment="Center"/>
+                        <TextBlock Text="Conservados" Style="{StaticResource TituloPasoStyle}"/>
+                        <TextBlock Text="  · uno por línea" Style="{StaticResource TextoSecundarioStyle}"
+                                   VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <TextBox Grid.Row="1" x:Name="ConservadosTextBox" AcceptsReturn="True" TextWrapping="Wrap"
+                             VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top"
+                             Margin="0,0,0,18" TextChanged="Funciones_TextChanged"/>
+
+                    <DockPanel Grid.Row="2" Margin="0,0,0,8">
+                        <TextBlock x:Name="AlteradosConteo" DockPanel.Dock="Right"
+                                   Style="{StaticResource TextoSecundarioStyle}" VerticalAlignment="Center"/>
+                        <TextBlock Text="Alterados" Style="{StaticResource TituloPasoStyle}"/>
+                        <TextBlock Text="  · uno por línea" Style="{StaticResource TextoSecundarioStyle}"
+                                   VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <TextBox Grid.Row="3" x:Name="AlteradosTextBox" AcceptsReturn="True" TextWrapping="Wrap"
+                             VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top"
+                             TextChanged="Funciones_TextChanged"/>
+                </Grid>
+            </Border>
         </Grid>
 
-        <Grid Grid.Row="2" Margin="0,0,0,15">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="200"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <TextBlock Text="Orden de servicio (CUPS)" FontSize="15" VerticalAlignment="Center"/>
-            <Button Grid.Column="1" Content="Seleccionar..." Width="120" Height="32"
-                    Click="SeleccionarOrdenButton_Click"/>
-            <TextBlock Grid.Column="2" x:Name="OrdenRutaText" Text="Ninguno" Margin="12,0,0,0"
-                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-        </Grid>
-
-        <Grid Grid.Row="3" Margin="0,0,0,15">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="200"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <TextBlock Text="Emisión del plan" FontSize="15" VerticalAlignment="Center"/>
-            <ComboBox Grid.Column="1" x:Name="MesCombo" Width="130" Height="30"
-                      DisplayMemberPath="Nombre" SelectedValuePath="Numero"
-                      VerticalContentAlignment="Center"/>
-            <ComboBox Grid.Column="2" x:Name="AnioCombo" Width="90" Height="30" Margin="10,0,0,0"
-                      VerticalContentAlignment="Center"/>
-        </Grid>
-
-        <GroupBox Grid.Row="4" Header="Informes para la IA (solo se envían a Gemini)"
-                  Margin="0,0,0,15" Padding="10">
+        <!-- ───── Barra de avisos ───── -->
+        <Border Grid.Row="2" x:Name="AvisoBorder" Visibility="Collapsed" CornerRadius="6"
+                Padding="14,10" Margin="0,16,0,0">
             <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="190"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-
-                <TextBlock Grid.Row="0" Text="Informe 1" FontSize="15" VerticalAlignment="Center"/>
-                <Button Grid.Row="0" Grid.Column="1" Content="Seleccionar..." Width="120" Height="32"
-                        Tag="0" Click="SeleccionarInforme_Click"/>
-                <TextBlock Grid.Row="0" Grid.Column="2" x:Name="Informe1RutaText" Text="Ninguno"
-                           Margin="12,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                <Button Grid.Row="0" Grid.Column="3" Content="Quitar" Width="70" Height="32"
-                        Tag="0" Click="QuitarInforme_Click"/>
-
-                <TextBlock Grid.Row="1" Text="Informe 2 (opcional)" FontSize="15"
-                           VerticalAlignment="Center" Margin="0,8,0,0"/>
-                <Button Grid.Row="1" Grid.Column="1" Content="Seleccionar..." Width="120" Height="32"
-                        Margin="0,8,0,0" Tag="1" Click="SeleccionarInforme_Click"/>
-                <TextBlock Grid.Row="1" Grid.Column="2" x:Name="Informe2RutaText" Text="Ninguno"
-                           Margin="12,8,12,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                <Button Grid.Row="1" Grid.Column="3" Content="Quitar" Width="70" Height="32"
-                        Margin="0,8,0,0" Tag="1" Click="QuitarInforme_Click"/>
-
-                <Button Grid.Row="2" Grid.ColumnSpan="2" x:Name="SugerirIAButton" Content="Sugerir con IA"
-                        Width="150" Height="36" HorizontalAlignment="Left" Margin="0,12,0,0"
-                        IsEnabled="False" Click="SugerirIAButton_Click"/>
+                <TextBlock x:Name="AvisoIconoText" Style="{StaticResource IconoStyle}" FontSize="18"
+                           Margin="0,0,12,0" VerticalAlignment="Top"/>
+                <TextBlock Grid.Column="1" x:Name="AvisoText" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                <Button Grid.Column="2" x:Name="AvisoAccionButton" Visibility="Collapsed" Margin="12,0,0,0"
+                        Click="AvisoAccionButton_Click"/>
+                <Button Grid.Column="3" ToolTip="Cerrar" Margin="8,0,0,0" Click="CerrarAvisoButton_Click">
+                    <TextBlock Style="{StaticResource IconoStyle}" FontSize="12" Text="&#xE711;"/>
+                </Button>
             </Grid>
-        </GroupBox>
-
-        <Grid Grid.Row="5" Margin="0,0,0,15">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="15"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="Conservados (uno por línea)"
-                       FontSize="15" Margin="0,0,0,5"/>
-            <TextBox Grid.Row="1" Grid.Column="0" x:Name="ConservadosTextBox"
-                     AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
-
-            <TextBlock Grid.Row="0" Grid.Column="2" Text="Alterados (uno por línea)"
-                       FontSize="15" Margin="0,0,0,5"/>
-            <TextBox Grid.Row="1" Grid.Column="2" x:Name="AlteradosTextBox"
-                     AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
-        </Grid>
-
-        <StackPanel Grid.Row="6" Orientation="Horizontal">
-            <Button x:Name="LeerButton" Content="Leer documentos" Width="180" Height="36"
-                    IsEnabled="False" Click="LeerButton_Click"/>
-            <Button x:Name="GenerarButton" Content="Generar plan (PDF)" Width="180" Height="36"
-                    Margin="10,0,0,0" IsEnabled="False" Click="GenerarButton_Click"/>
-            <CheckBox x:Name="GuardarWordCheckBox" Content="Guardar también el Word (.docx)"
-                      Margin="15,0,0,0" VerticalAlignment="Center" IsChecked="True"/>
-        </StackPanel>
+        </Border>
     </Grid>
 </Window>

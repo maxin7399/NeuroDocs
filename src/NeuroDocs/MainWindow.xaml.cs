@@ -1,14 +1,14 @@
 ﻿using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
-using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
 using Microsoft.Win32;
 using NeuroDocs.Models;
 using NeuroDocs.Services;
-using System.Runtime.InteropServices;
-using System.Windows.Input;
-using System.Net.Http;
 
 namespace NeuroDocs;
 
@@ -16,96 +16,112 @@ public partial class MainWindow : Window
 {
     private static readonly string RutaPlantilla =
         Path.Combine(AppContext.BaseDirectory, "Plantillas", "PlantillaPlanRehabilitacion.docx");
-    private void ConfiguracionButton_Click(object sender, RoutedEventArgs e) =>
-    new ConfiguracionWindow { Owner = this }.ShowDialog();
 
     private readonly PdfTextExtractor _extractor = new();
     private readonly HistoriaClinicaParser _historiaParser = new();
     private readonly OrdenServicioParser _ordenParser = new();
+    private readonly FirmaExtractor _firmaExtractor = new();
     private readonly GeneradorPlanWord _generador = new();
     private readonly ConvertidorPdfWord _convertidorPdf = new();
-    private readonly FirmaExtractor _firmaExtractor = new();
-    private readonly string?[] _rutasInformes = new string?[2];
-    private string? _rutaHistoria;
-    private string? _rutaOrden;
+
     private (DatosPaciente Paciente, DatosOrden Orden, Firma? Firma)? _lectura;
     private ResultadoWindow? _ventanaResultado;
+    private int _versionLectura;   // descarta lecturas viejas si cambian los archivos mientras se leen
+    private Action? _accionAviso;
 
     public MainWindow()
     {
         InitializeComponent();
         InicializarEmisionPlan();
+        ActualizarConteos();
     }
 
-    // ───────────── Selección de archivos ─────────────
+    // ───────────── Paso 1: documentos del paciente ─────────────
 
-    private void SeleccionarHistoriaButton_Click(object sender, RoutedEventArgs e)
+    private async void DocumentoPaciente_RutaCambiada(object? sender, EventArgs e) => await LeerDocumentosAsync();
+
+    /// <summary>Lee ECC y CUPS automáticamente en cuanto ambos están seleccionados.</summary>
+    private async Task LeerDocumentosAsync()
     {
-        if (SeleccionarPdf("Seleccionar historia clínica (ECC)") is not { } ruta) return;
-
-        _rutaHistoria = ruta;
-        MostrarRuta(HistoriaRutaText, ruta);
-        ActualizarEstado();
-    }
-
-    private void SeleccionarOrdenButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (SeleccionarPdf("Seleccionar orden de servicio (CUPS)") is not { } ruta) return;
-
-        _rutaOrden = ruta;
-        MostrarRuta(OrdenRutaText, ruta);
-        ActualizarEstado();
-    }
-
-    private static string? SeleccionarPdf(string titulo)
-    {
-        var dialogo = new OpenFileDialog { Title = titulo, Filter = "Archivos PDF (*.pdf)|*.pdf" };
-        return dialogo.ShowDialog() == true ? dialogo.FileName : null;
-    }
-
-    private static void MostrarRuta(TextBlock destino, string ruta)
-    {
-        destino.Text = Path.GetFileName(ruta);
-        destino.ToolTip = ruta;
-    }
-
-    private void ActualizarEstado()
-    {
-        LeerButton.IsEnabled = _rutaHistoria is not null && _rutaOrden is not null;
         _lectura = null;
         GenerarButton.IsEnabled = false;
-        _ventanaResultado?.Close(); // si cambian los archivos, la vista previa ya no es válida
+        _ventanaResultado?.Close();
+        OcultarAviso();
+
+        if (HistoriaSelector.Ruta is not { } rutaHistoria || OrdenSelector.Ruta is not { } rutaOrden)
+        {
+            ResumenBorder.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        int version = ++_versionLectura;
+        MostrarResumenCargando();
+
+        try
+        {
+            var lectura = await Task.Run(() =>
+            {
+                var lineasHistoria = _extractor.ExtractLines(rutaHistoria);
+                return (
+                    Paciente: _historiaParser.Parse(lineasHistoria),
+                    Orden: _ordenParser.Parse(_extractor.ExtractLines(rutaOrden)),
+                    Firma: _firmaExtractor.Extraer(rutaHistoria, lineasHistoria));
+            });
+
+            if (version != _versionLectura) return;
+
+            _lectura = lectura;
+            MostrarResumen(lectura.Paciente, lectura.Orden);
+            GenerarButton.IsEnabled = true;
+
+            var advertencias = ValidadorDocumentos.Validar(lectura.Paciente, lectura.Orden).ToList();
+            if (lectura.Firma is null)
+                advertencias.Add("No se encontró la firma del profesional en la historia clínica.");
+
+            if (advertencias.Count > 0)
+                MostrarAviso(TipoAviso.Advertencia, string.Join(Environment.NewLine, advertencias));
+        }
+        catch (Exception ex)
+        {
+            if (version != _versionLectura) return;
+
+            ResumenBorder.Visibility = Visibility.Collapsed;
+            MostrarAviso(TipoAviso.Error, $"No se pudieron leer los documentos: {ex.Message}");
+        }
     }
-    // ───────────── Informes para la IA ─────────────
 
-    private TextBlock[] TextosInformes => [Informe1RutaText, Informe2RutaText];
-
-    private void SeleccionarInforme_Click(object sender, RoutedEventArgs e)
+    private void MostrarResumenCargando()
     {
-        int indice = IndiceInforme(sender);
-        if (SeleccionarPdf($"Seleccionar informe {indice + 1} para la IA") is not { } ruta) return;
-
-        _rutasInformes[indice] = ruta;
-        MostrarRuta(TextosInformes[indice], ruta);
-        ActualizarEstadoIA();
+        ResumenNombreText.Text = "Leyendo documentos…";
+        ResumenDetalleText.Text = "";
+        VerDatosButton.Visibility = Visibility.Collapsed;
+        ResumenBorder.Visibility = Visibility.Visible;
     }
 
-    private void QuitarInforme_Click(object sender, RoutedEventArgs e)
+    private void MostrarResumen(DatosPaciente paciente, DatosOrden orden)
     {
-        int indice = IndiceInforme(sender);
+        ResumenNombreText.Text = paciente.Campos.TryGetValue(CamposPaciente.Nombre, out var nombre)
+            ? nombre
+            : "(nombre no encontrado)";
 
-        _rutasInformes[indice] = null;
-        TextosInformes[indice].Text = "Ninguno";
-        TextosInformes[indice].ToolTip = null;
-        ActualizarEstadoIA();
+        // "C.C. 8601373, Repelón – Atlántico." → "C.C. 8601373"
+        string documento = paciente.Campos.TryGetValue(CamposPaciente.Identificacion, out var id)
+            ? id.Split(',')[0].Trim()
+            : "Documento no encontrado";
+
+        string terapia = orden is { SesionesMensuales: { } s, Meses: { } m } ? $"{s} sesiones × {m} meses" : "Terapia no encontrada";
+
+        ResumenDetalleText.Text = $"{documento} · CIE-10 {orden.Cie10Codigo ?? "—"} · {terapia}";
+        VerDatosButton.Visibility = Visibility.Visible;
     }
 
-    private static int IndiceInforme(object sender) => int.Parse((string)((FrameworkElement)sender).Tag);
+    private void VerDatosButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_lectura is not { } lectura) return;
 
-    private void ActualizarEstadoIA() =>
-        SugerirIAButton.IsEnabled = _rutasInformes.Any(r => r is not null);
-
-    // ───────────── Emisión del plan ─────────────
+        var plan = ConstruirPlan(lectura.Paciente, lectura.Orden, lectura.Firma);
+        MostrarResultado(Formatear(plan, ValidadorDocumentos.Validar(lectura.Paciente, lectura.Orden)));
+    }
 
     private void InicializarEmisionPlan()
     {
@@ -122,10 +138,17 @@ public partial class MainWindow : Window
 
     private DateOnly EmisionPlan => new((int)AnioCombo.SelectedItem, (int)MesCombo.SelectedValue, 1);
 
-    // ───────────── Lectura ─────────────
+    // ───────────── Paso 2: funciones con IA ─────────────
+
+    private List<string> RutasInformes =>
+        new[] { Informe1Selector.Ruta, Informe2Selector.Ruta }.OfType<string>().ToList();
+
+    private void Informe_RutaCambiada(object? sender, EventArgs e) =>
+        SugerirIAButton.IsEnabled = RutasInformes.Count > 0;
+
     private async void SugerirIAButton_Click(object sender, RoutedEventArgs e)
     {
-        var rutas = _rutasInformes.OfType<string>().ToList();
+        var rutas = RutasInformes;
         if (rutas.Count == 0) return;
 
         bool hayTexto = !string.IsNullOrWhiteSpace(ConservadosTextBox.Text)
@@ -139,6 +162,7 @@ public partial class MainWindow : Window
 
         SugerirIAButton.IsEnabled = false;
         Mouse.OverrideCursor = Cursors.Wait;
+        MostrarAviso(TipoAviso.Informacion, "Consultando a Gemini…");
         try
         {
             var clasificador = new ClasificadorFuncionesGemini(ConfiguracionGemini.Cargar());
@@ -146,77 +170,62 @@ public partial class MainWindow : Window
 
             ConservadosTextBox.Text = string.Join(Environment.NewLine, funciones.Conservados);
             AlteradosTextBox.Text = string.Join(Environment.NewLine, funciones.Alterados);
+
+            MostrarAviso(TipoAviso.Exito, "Sugerencia lista. Revisa ambas listas antes de generar el plan.");
         }
         catch (HttpRequestException ex)
         {
-            MostrarError($"No se pudo conectar con Gemini. Revisa la conexión a internet.\n\n{ex.Message}");
+            MostrarAviso(TipoAviso.Error, $"No se pudo conectar con Gemini. Revisa la conexión a internet. ({ex.Message})");
         }
         catch (TaskCanceledException)
         {
-            MostrarError("Gemini tardó demasiado en responder. Intenta de nuevo.");
+            MostrarAviso(TipoAviso.Error, "Gemini tardó demasiado en responder. Intenta de nuevo.");
         }
         catch (IOException ex)
         {
-            MostrarError($"No se pudo leer uno de los informes. Si está abierto en otro programa, ciérralo.\n\n{ex.Message}");
+            MostrarAviso(TipoAviso.Error, $"No se pudo leer uno de los informes. Si está abierto en otro programa, ciérralo. ({ex.Message})");
         }
         catch (Exception ex)
         {
-            MostrarError(ex.Message);
+            MostrarAviso(TipoAviso.Error, ex.Message);
         }
         finally
         {
             Mouse.OverrideCursor = null;
-            ActualizarEstadoIA();
+            SugerirIAButton.IsEnabled = RutasInformes.Count > 0;
         }
     }
-    private async void LeerButton_Click(object sender, RoutedEventArgs e)
+
+    private void Funciones_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e) =>
+        ActualizarConteos();
+
+    private void ActualizarConteos()
     {
-        if (_rutaHistoria is not { } rutaHistoria || _rutaOrden is not { } rutaOrden) return;
+        // TextChanged puede dispararse mientras se construye la ventana, antes de que existan los contadores.
+        if (ConservadosConteo is null || AlteradosConteo is null) return;
 
-        LeerButton.IsEnabled = false;
-        try
-        {
-            var (paciente, orden, firma) = await Task.Run(() =>
-            {
-                var lineasHistoria = _extractor.ExtractLines(rutaHistoria);
-                return (
-                    _historiaParser.Parse(lineasHistoria),
-                    _ordenParser.Parse(_extractor.ExtractLines(rutaOrden)),
-                    _firmaExtractor.Extraer(rutaHistoria, lineasHistoria));
-            });
-
-            _lectura = (paciente, orden, firma);
-            MostrarResultado(Formatear(ConstruirPlan(paciente, orden, firma), ValidadorDocumentos.Validar(paciente, orden)));
-            GenerarButton.IsEnabled = true;
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show($"No se pudieron leer los documentos:\n{ex.Message}", "Error",
-                            MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-        finally
-        {
-            LeerButton.IsEnabled = true;
-        }
+        ConservadosConteo.Text = DescribirConteo(ListaTexto.ParsearItems(ConservadosTextBox.Text).Count);
+        AlteradosConteo.Text = DescribirConteo(ListaTexto.ParsearItems(AlteradosTextBox.Text).Count);
     }
 
-    // ───────────── Generación ─────────────
+    private static string DescribirConteo(int cantidad) => cantidad == 1 ? "1 ítem" : $"{cantidad} ítems";
+
+    // ───────────── Paso 3: generar ─────────────
 
     private async void GenerarButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_lectura is not { } lectura || _rutaHistoria is not { } rutaHistoria) return;
+        if (_lectura is not { } lectura || HistoriaSelector.Ruta is not { } rutaHistoria) return;
 
         if (!File.Exists(RutaPlantilla))
         {
-            MessageBox.Show($"No se encontró la plantilla en:\n{RutaPlantilla}", "Plantilla no encontrada",
-                            MessageBoxButton.OK, MessageBoxImage.Error);
+            MostrarAviso(TipoAviso.Error, $"No se encontró la plantilla en: {RutaPlantilla}");
             return;
         }
 
         var plan = ConstruirPlan(lectura.Paciente, lectura.Orden, lectura.Firma);
 
         if (plan.Funciones.Conservados.Count == 0 && plan.Funciones.Alterados.Count == 0 &&
-            MessageBox.Show("No ingresaste funciones conservadas ni alteradas. ¿Generar de todas formas?",
+            MessageBox.Show("No hay funciones conservadas ni alteradas. ¿Generar de todas formas?",
                             "Funciones vacías", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
         {
             return;
@@ -245,52 +254,46 @@ public partial class MainWindow : Window
             : Path.Combine(Path.GetTempPath(), $"NeuroDocs_{Guid.NewGuid():N}.docx");
 
         GenerarButton.IsEnabled = false;
-        Mouse.OverrideCursor = Cursors.Wait; // Word tarda unos segundos en abrir y exportar
+        Mouse.OverrideCursor = Cursors.Wait;
+        MostrarAviso(TipoAviso.Informacion, "Generando el plan…");
         try
         {
             await Task.Run(() => _generador.Generar(RutaPlantilla, rutaDocx, plan));
             await _convertidorPdf.ConvertirAsync(rutaDocx, rutaPdf);
 
-            Mouse.OverrideCursor = null;
-            if (MessageBox.Show("Plan generado correctamente. ¿Deseas abrir el PDF?", "NeuroDocs",
-                                MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.Yes)
-            {
-                Process.Start(new ProcessStartInfo(rutaPdf) { UseShellExecute = true });
-            }
+            MostrarAviso(TipoAviso.Exito, $"Plan guardado: {Path.GetFileName(rutaPdf)}",
+                         "Abrir PDF", () => AbrirArchivo(rutaPdf));
         }
         catch (IOException ex)
         {
-            MostrarError($"No se pudo guardar el Word. Si está abierto, ciérralo e intenta de nuevo.\n\n{ex.Message}");
+            MostrarAviso(TipoAviso.Error, $"No se pudo guardar el Word. Si está abierto, ciérralo e intenta de nuevo. ({ex.Message})");
         }
         catch (COMException ex)
         {
-            MostrarError($"Word no pudo exportar el PDF. Si el PDF está abierto en otro programa, ciérralo e intenta de nuevo.\n\n{ex.Message}");
+            MostrarAviso(TipoAviso.Error, $"Word no pudo exportar el PDF. Si el PDF está abierto en otro programa, ciérralo. ({ex.Message})");
         }
         catch (Exception ex)
         {
-            MostrarError($"No se pudo generar el plan:\n{ex.Message}");
+            MostrarAviso(TipoAviso.Error, $"No se pudo generar el plan: {ex.Message}");
         }
         finally
         {
             Mouse.OverrideCursor = null;
-            GenerarButton.IsEnabled = true;
+            GenerarButton.IsEnabled = _lectura is not null;
 
             if (!conservarWord)
             {
-                try { File.Delete(rutaDocx); } catch (IOException) { } // temporal: si falla el borrado, no es crítico
+                try { File.Delete(rutaDocx); } catch (IOException) { }
             }
         }
     }
 
-    private static void MostrarError(string mensaje) =>
-        MessageBox.Show(mensaje, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-
     private DatosPlan ConstruirPlan(DatosPaciente paciente, DatosOrden orden, Firma? firma) =>
-    new(paciente, orden, EmisionPlan,
-        new FuncionesEvaluadas(
-            ListaTexto.ParsearItems(ConservadosTextBox.Text),
-            ListaTexto.ParsearItems(AlteradosTextBox.Text)),
-        firma);
+        new(paciente, orden, EmisionPlan,
+            new FuncionesEvaluadas(
+                ListaTexto.ParsearItems(ConservadosTextBox.Text),
+                ListaTexto.ParsearItems(AlteradosTextBox.Text)),
+            firma);
 
     /// <summary>"OscarminMuñozJimenezECC.pdf" → "OscarminMuñozJimenezPlanRehaSeptiembre2026"</summary>
     private static string NombreSugerido(string rutaHistoria, DateOnly emision)
@@ -301,7 +304,52 @@ public partial class MainWindow : Window
         return $"{nombre}PlanReha{FormatoFecha.NombreMes(emision.Month)}{emision.Year}";
     }
 
-    // ───────────── Vista previa ─────────────
+    private static void AbrirArchivo(string ruta) =>
+        Process.Start(new ProcessStartInfo(ruta) { UseShellExecute = true });
+
+    // ───────────── Barra de avisos ─────────────
+
+    private enum TipoAviso { Informacion, Exito, Advertencia, Error }
+
+    private static readonly Dictionary<TipoAviso, (string Icono, string ClaveFondo, string ClaveIcono)> EstilosAviso = new()
+    {
+        [TipoAviso.Informacion] = ("\uE946", "AvisoInfoFondoBrush", "AvisoInfoIconoBrush"),
+        [TipoAviso.Exito] = ("\uE930", "AvisoExitoFondoBrush", "AvisoExitoIconoBrush"),
+        [TipoAviso.Advertencia] = ("\uE7BA", "AvisoAdvertenciaFondoBrush", "AvisoAdvertenciaIconoBrush"),
+        [TipoAviso.Error] = ("\uEA39", "AvisoErrorFondoBrush", "AvisoErrorIconoBrush"),
+    };
+
+    private void MostrarAviso(TipoAviso tipo, string mensaje, string? textoAccion = null, Action? accion = null)
+    {
+        var (icono, claveFondo, claveIcono) = EstilosAviso[tipo];
+
+        AvisoBorder.Background = (Brush)FindResource(claveFondo);
+        AvisoIconoText.Text = icono;
+        AvisoIconoText.Foreground = (Brush)FindResource(claveIcono);
+        AvisoText.Text = mensaje;
+
+        _accionAviso = accion;
+        AvisoAccionButton.Content = textoAccion;
+        AvisoAccionButton.Visibility = accion is null ? Visibility.Collapsed : Visibility.Visible;
+
+        AvisoBorder.Visibility = Visibility.Visible;
+    }
+
+    private void OcultarAviso()
+    {
+        AvisoBorder.Visibility = Visibility.Collapsed;
+        _accionAviso = null;
+    }
+
+    private void AvisoAccionButton_Click(object sender, RoutedEventArgs e) => _accionAviso?.Invoke();
+
+    private void CerrarAvisoButton_Click(object sender, RoutedEventArgs e) => OcultarAviso();
+
+    // ───────────── Ventanas auxiliares ─────────────
+
+    private void ConfiguracionButton_Click(object sender, RoutedEventArgs e) =>
+        new ConfiguracionWindow { Owner = this }.ShowDialog();
+
     private void MostrarResultado(string texto)
     {
         if (_ventanaResultado is null)
@@ -314,6 +362,7 @@ public partial class MainWindow : Window
         _ventanaResultado.MostrarContenido(texto);
         _ventanaResultado.Activate();
     }
+
     private static string Formatear(DatosPlan plan, IReadOnlyList<string> advertencias)
     {
         const string NoEncontrado = "(no encontrado)";
@@ -353,13 +402,14 @@ public partial class MainWindow : Window
         sb.AppendLine("\nFIRMA (historia clínica)");
         if (plan.Firma is null)
         {
-            sb.AppendLine("(no encontrada)");
+            sb.AppendLine(NoEncontrado);
         }
         else
         {
             foreach (var linea in plan.Firma.Lineas) sb.AppendLine(linea);
             sb.AppendLine($"[Imagen {plan.Firma.Formato}, {plan.Firma.AnchoPt:0} × {plan.Firma.AltoPt:0} pt]");
         }
+
         return sb.ToString();
     }
 
