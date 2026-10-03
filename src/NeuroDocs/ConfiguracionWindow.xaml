@@ -4,7 +4,8 @@
         Title="Configuración" Width="520" SizeToContent="Height"
         ResizeMode="NoResize" WindowStartupLocation="CenterOwner"
         Background="{StaticResource FondoVentanaBrush}"
-        Foreground="{StaticResource TextoPrincipalBrush}">
+        Foreground="{StaticResource TextoPrincipalBrush}"
+        Icon="/Assets/NeuroDocs.ico">
 
     <StackPanel Margin="20">
         <TextBlock Text="Clave de API de Gemini" FontSize="15" FontWeight="SemiBold"/>

@@ -1,4 +1,5 @@
 # NeuroDocs
+![NeuroDocs](src/NeuroDocs/Assets/NeuroDocs-256.png)
 
 Aplicación de escritorio para automatizar la elaboración de planes de rehabilitación neuropsicológica cognitiva.
 

@@ -5,7 +5,8 @@
         Title="NeuroDocs" Height="800" MinWidth="1050" MinHeight="680"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource FondoVentanaBrush}" Width="1035" WindowState="Maximized"
-        Foreground="{StaticResource TextoPrincipalBrush}">
+        Foreground="{StaticResource TextoPrincipalBrush}"
+        Icon="/Assets/NeuroDocs.ico">
 
     <Grid Margin="24">
         <Grid.RowDefinitions>
@@ -25,10 +26,14 @@
                     <TextBlock Text="Configuración"/>
                 </StackPanel>
             </Button>
-            <StackPanel>
-                <TextBlock Text="NeuroDocs" FontSize="26" FontWeight="Bold"/>
-                <TextBlock Text="Plan individualizado de rehabilitación neuropsicológica cognitiva"
-                           Style="{StaticResource TextoSecundarioStyle}" FontSize="13"/>
+            <StackPanel Orientation="Horizontal">
+                <Image Source="/Assets/NeuroDocs-256.png" Width="46" Height="46" Margin="0,0,14,0"
+           VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality"/>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="NeuroDocs" FontSize="26" FontWeight="Bold"/>
+                    <TextBlock Text="Plan individualizado de rehabilitación neuropsicológica cognitiva"
+                   Style="{StaticResource TextoSecundarioStyle}" FontSize="13"/>
+                </StackPanel>
             </StackPanel>
         </DockPanel>
 

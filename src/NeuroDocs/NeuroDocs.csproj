@@ -1,8 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <!-- ThemeMode (tema Fluent) es una API experimental de WPF -->
-	  <NoWarn>$(NoWarn);WPF0001</NoWarn>
+	<ApplicationIcon>Assets\NeuroDocs.ico</ApplicationIcon>
+	<!-- ThemeMode (tema Fluent) es una API experimental de WPF -->
+	<NoWarn>$(NoWarn);WPF0001</NoWarn>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
@@ -20,6 +21,11 @@
     <Folder Include="IA\" />
     <Folder Include="Plantillas\" />
   </ItemGroup>
+	
+	<ItemGroup>
+		<Resource Include="Assets\NeuroDocs.ico" />
+		<Resource Include="Assets\NeuroDocs-256.png" />
+	</ItemGroup>
 
   <ItemGroup>
     <None Update="IA\InstruccionesFunciones.txt">

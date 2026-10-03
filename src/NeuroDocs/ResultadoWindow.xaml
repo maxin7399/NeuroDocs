@@ -4,7 +4,8 @@
         Title="NeuroDocs — Datos extraídos" Height="650" Width="700"
         WindowStartupLocation="CenterOwner"
         Background="{StaticResource FondoVentanaBrush}"
-        Foreground="{StaticResource TextoPrincipalBrush}">
+        Foreground="{StaticResource TextoPrincipalBrush}"
+        Icon="/Assets/NeuroDocs.ico">
 
     <Grid Margin="20">
         <Grid.RowDefinitions>
