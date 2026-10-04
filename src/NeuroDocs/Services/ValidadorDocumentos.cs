@@ -22,7 +22,10 @@ public static class ValidadorDocumentos
                     $"El número de documento no coincide: historia clínica {documentoHistoria}, orden {documentoOrden}.");
             }
         }
-
+        if (paciente.Diagnosticos.Count == 0 && orden.Cie10Descripcion is null)
+        {
+            advertencias.Add("No se encontró diagnóstico ni en la historia clínica ni en la orden de servicio.");
+        }
         return advertencias;
     }
 }

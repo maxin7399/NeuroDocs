@@ -382,9 +382,8 @@ public partial class MainWindow : Window
             sb.AppendLine($"{campo}: {valor}");
         }
 
-        sb.AppendLine("\nDIAGNÓSTICO (historia clínica)");
-        if (plan.Paciente.Diagnosticos.Count == 0) sb.AppendLine(NoEncontrado);
-        foreach (var d in plan.Paciente.Diagnosticos) sb.AppendLine($"• {d}");
+        sb.AppendLine($"\nDIAGNÓSTICO (fuente: {plan.OrigenDiagnostico})");
+        sb.AppendLine(plan.Diagnostico.Length > 0 ? plan.Diagnostico : NoEncontrado);
 
         sb.AppendLine("\nORDEN DE SERVICIO");
         sb.AppendLine($"Sesiones mensuales: {plan.Orden.SesionesMensuales?.ToString() ?? NoEncontrado}");
@@ -406,6 +405,7 @@ public partial class MainWindow : Window
         }
         else
         {
+            if (plan.Firma.Lineas.Count == 0) sb.AppendLine("(nombre y registro incluidos dentro de la imagen)");
             foreach (var linea in plan.Firma.Lineas) sb.AppendLine(linea);
             sb.AppendLine($"[Imagen {plan.Firma.Formato}, {plan.Firma.AnchoPt:0} × {plan.Firma.AltoPt:0} pt]");
         }

@@ -13,6 +13,9 @@ namespace NeuroDocs.Controls;
 public partial class SelectorArchivo : UserControl
 {
     private const string TextoVacio = "Ningún archivo · arrastra un PDF aquí";
+    private const string IconoDocumento = "\uE8A5";   // documento
+    private const string IconoCompletado = "\uE930";  // círculo con check
+    private string _iconoVacio = IconoDocumento;
     private string? _ruta;
 
     /// <summary>Se dispara al seleccionar, soltar o quitar un archivo. La ruta nueva está en <see cref="Ruta"/>.</summary>
@@ -30,10 +33,15 @@ public partial class SelectorArchivo : UserControl
         set => TituloText.Text = value;
     }
 
+    /// <summary>Ícono que se muestra mientras no hay archivo. Con archivo se muestra el check.</summary>
     public string Icono
     {
-        get => IconoText.Text;
-        set => IconoText.Text = value;
+        get => _iconoVacio;
+        set
+        {
+            _iconoVacio = value;
+            ActualizarVista();
+        }
     }
 
     public bool PermiteQuitar { get; set; }
@@ -53,9 +61,11 @@ public partial class SelectorArchivo : UserControl
     {
         bool hayArchivo = _ruta is not null;
 
+        IconoText.Text = hayArchivo ? IconoCompletado : _iconoVacio;
+        IconoText.Foreground = (Brush)FindResource(hayArchivo ? "ExitoBrush" : "TextoSecundarioBrush");
+
         ArchivoText.Text = hayArchivo ? Path.GetFileName(_ruta) : TextoVacio;
         ArchivoText.ToolTip = _ruta;
-        CheckText.Visibility = hayArchivo ? Visibility.Visible : Visibility.Collapsed;
         QuitarButton.Visibility = hayArchivo && PermiteQuitar ? Visibility.Visible : Visibility.Collapsed;
     }
 

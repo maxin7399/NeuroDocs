@@ -6,6 +6,18 @@ namespace NeuroDocs.Services;
 
 internal static class TextoUtil
 {
+    private static readonly CultureInfo Espanol = new("es-CO");
+    private static readonly Regex Numeracion = new(@"^\s*\d+(\.\d+)*\.?\s+", RegexOptions.Compiled);
+
+    /// <summary>"9. IMPRESIÓN DIAGNÓSTICA" → "IMPRESIÓN DIAGNÓSTICA"</summary>
+    public static string QuitarNumeracion(string titulo) => Numeracion.Replace(titulo, "");
+
+    /// <summary>"TRASTORNO DE LA CONDUCTA SOCIABLE" → "Trastorno de la conducta sociable"</summary>
+    public static string MayusculaInicial(string texto)
+    {
+        string t = texto.Trim().ToLower(Espanol);
+        return t.Length == 0 ? t : char.ToUpper(t[0], Espanol) + t[1..];
+    }
     /// <summary>Minúsculas, sin tildes y sin espacios repetidos, para comparar etiquetas con tolerancia.</summary>
     public static string Normalizar(string s)
     {

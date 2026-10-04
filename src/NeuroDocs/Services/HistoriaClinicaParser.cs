@@ -77,7 +77,7 @@ public sealed class HistoriaClinicaParser
         int inicio = -1;
         for (int i = 0; i < lines.Count; i++)
         {
-            if (lines[i].IsAllBold && Normalizar(lines[i].Text) == tituloNorm)
+            if (lines[i].IsAllBold && Normalizar(QuitarNumeracion(lines[i].Text)) == tituloNorm)
             {
                 inicio = i + 1;
                 break;

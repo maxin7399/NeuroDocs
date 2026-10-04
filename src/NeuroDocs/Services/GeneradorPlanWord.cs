@@ -26,7 +26,7 @@ public sealed class GeneradorPlanWord
         LlenarIdentificacion(body, plan.Paciente);
 
         LlenarCampo(body, ["Emisión del Plan"], FormatoFecha.MesAnio(plan.EmisionPlan), negrita: true);
-        LlenarCampo(body, ["Diagnóstico"], string.Join("; ", plan.Paciente.Diagnosticos.Select(QuitarPuntoFinal)));
+        LlenarCampo(body, ["Diagnóstico"], plan.Diagnostico);
         LlenarCampo(body, ["CIE-10"], plan.Orden.Cie10Codigo ?? "", negrita: true);
         LlenarCampo(body, ["Tiempo de terapia solicitado"], FormatearTiempo(plan.Orden));
 
@@ -196,8 +196,6 @@ public sealed class GeneradorPlanWord
         orden is { SesionesMensuales: { } sesiones, Meses: { } meses }
             ? $"{sesiones} SESIONES MENSUALES POR {meses} MESES"
             : "";
-
-    private static string QuitarPuntoFinal(string texto) => texto.TrimEnd().TrimEnd('.');
 
     // ───────────── Tabla de funciones ─────────────
 

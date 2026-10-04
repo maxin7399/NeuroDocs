@@ -45,3 +45,5 @@ src/NeuroDocs/
 ## Privacidad
 
 Este repositorio no debe contener documentos de pacientes. El `.gitignore` excluye PDFs y documentos Word (salvo la plantilla); los archivos de prueba van en `muestras/`, que también está excluida.
+
+![Pantalla principal](docs/capturas/principal.png)

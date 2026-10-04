@@ -14,17 +14,13 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <TextBlock x:Name="IconoText" Style="{StaticResource IconoStyle}" FontSize="20"
-                       Foreground="{StaticResource TextoSecundarioBrush}" Margin="0,0,12,0" Text="&#xE8A5;"/>
+            <TextBlock x:Name="IconoText" Style="{StaticResource IconoStyle}" FontSize="20" Margin="0,0,12,0"/>
 
             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                 <TextBlock x:Name="TituloText" FontWeight="SemiBold"/>
                 <TextBlock x:Name="ArchivoText" Style="{StaticResource TextoSecundarioStyle}"/>
             </StackPanel>
 
-            <TextBlock Grid.Column="2" x:Name="CheckText" Style="{StaticResource IconoStyle}"
-                       Foreground="{StaticResource ExitoBrush}" Text="&#xE73E;" Margin="8,0"
-                       Visibility="Collapsed"/>
 
             <StackPanel Grid.Column="3" Orientation="Horizontal">
                 <Button x:Name="QuitarButton" ToolTip="Quitar archivo" Visibility="Collapsed"
