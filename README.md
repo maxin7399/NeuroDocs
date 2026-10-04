@@ -44,6 +44,19 @@ src/NeuroDocs/
 
 ## Privacidad
 
-Este repositorio no debe contener documentos de pacientes. El `.gitignore` excluye PDFs y documentos Word (salvo la plantilla); los archivos de prueba van en `muestras/`, que también está excluida.
+Este repositorio no debe contener documentos de pacientes. El `.gitignore` excluye PDFs y documentos Word (salvo la plantilla);
 
-![Pantalla principal](docs/capturas/principal.png)
+## Capturas
+
+**Pantalla principal:** documentos del paciente, funciones sugeridas por la IA y generación del plan.
+
+![Pantalla principal de NeuroDocs](docs/capturas/principal.png)
+
+**Datos extraídos:** vista previa de la información leída de la historia clínica, la orden de servicio y la sugerencia generada por la IA.
+
+![Ventana con los datos extraídos del paciente](docs/capturas/datos.png)
+
+**Plan generado:** documento final en PDF con los datos, las funciones evaluadas y la firma del profesional.
+
+![Plan de rehabilitación generado en PDF](docs/capturas/plan-generado.png)
+
