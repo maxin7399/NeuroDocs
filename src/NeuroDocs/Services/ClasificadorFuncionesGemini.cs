@@ -175,8 +175,10 @@ public sealed class ClasificadorFuncionesGemini
 
         return estado switch
         {
+            HttpStatusCode.TooManyRequests when detalle?.Contains("prepayment", StringComparison.OrdinalIgnoreCase) == true =>
+            "El saldo prepago de la API de Gemini se agotó. Recarga créditos en Google AI Studio (Facturación) e intenta de nuevo.",
             HttpStatusCode.TooManyRequests =>
-                "Se alcanzó el límite de solicitudes de Gemini (plan gratuito). Espera un momento e intenta de nuevo.",
+                $"Se alcanzó el límite de solicitudes de Gemini. Espera un momento e intenta de nuevo.\n\n{detalle}",
             HttpStatusCode.NotFound =>
                 $"El modelo configurado no existe o no está disponible. Revisa GEMINI_MODEL.\n\n{detalle}",
             HttpStatusCode.ServiceUnavailable =>
