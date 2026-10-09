@@ -486,3 +486,5 @@ $RECYCLE.BIN/
 *.docx
 !src/NeuroDocs/Plantillas/*.docx
 muestras/
+# Paquetes generados por publicar.ps1
+publish/
