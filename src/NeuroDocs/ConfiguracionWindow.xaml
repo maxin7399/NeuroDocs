@@ -19,7 +19,9 @@
                    Text="Si un modelo deja de estar disponible, escribe el nombre del nuevo."/>
 
         <TextBlock x:Name="ResultadoPruebaText" TextWrapping="Wrap" Margin="0,18,0,0"/>
-
+        
+        <TextBlock x:Name="VersionText" Foreground="{StaticResource TextoSecundarioBrush}"
+           FontSize="12" Margin="0,18,0,0"/>
         <DockPanel Margin="0,18,0,0" LastChildFill="False">
             <Button x:Name="ProbarButton" Content="Probar conexión" Width="130" Height="32"
                     DockPanel.Dock="Left" Click="ProbarButton_Click"/>

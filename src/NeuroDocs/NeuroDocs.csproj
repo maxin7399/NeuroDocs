@@ -1,6 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+	<Version>1.0.0</Version>
+	<Product>NeuroDocs</Product>
+	<Description>Generación de planes de rehabilitación neuropsicológica</Description>
+	<Authors>Mateo Marciglia</Authors>
+	<Copyright>© 2026 Mateo Marciglia</Copyright>
 	<ApplicationIcon>Assets\NeuroDocs.ico</ApplicationIcon>
 	<!-- ThemeMode (tema Fluent) es una API experimental de WPF -->
 	<NoWarn>$(NoWarn);WPF0001</NoWarn>

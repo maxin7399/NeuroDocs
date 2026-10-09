@@ -11,6 +11,7 @@ public partial class ConfiguracionWindow : Window
     public ConfiguracionWindow()
     {
         InitializeComponent();
+        VersionText.Text = $"NeuroDocs {InfoAplicacion.VersionCompleta}";
 
         ModeloCombo.ItemsSource = ConfiguracionGemini.ModelosSugeridos;
         ModeloCombo.Text = _ajustes.Modelo ?? ConfiguracionGemini.ModeloPorDefecto;

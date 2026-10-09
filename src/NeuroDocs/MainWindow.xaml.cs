@@ -32,6 +32,8 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        VersionText.Text = $"v{InfoAplicacion.Version}";
+        VersionText.ToolTip = InfoAplicacion.VersionCompleta;
         InicializarEmisionPlan();
         ActualizarConteos();
     }
