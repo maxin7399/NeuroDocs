@@ -40,7 +40,21 @@ public partial class MainWindow : Window
 
     // ───────────── Paso 1: documentos del paciente ─────────────
 
-    private async void DocumentoPaciente_RutaCambiada(object? sender, EventArgs e) => await LeerDocumentosAsync();
+    private async void DocumentoPaciente_RutaCambiada(object? sender, EventArgs e)
+    {
+        // Un ECC nuevo es un paciente nuevo: los informes y las funciones del anterior no deben arrastrarse.
+        if (sender == HistoriaSelector) LimpiarDatosDelPacienteAnterior();
+
+        await LeerDocumentosAsync();
+    }
+
+    private void LimpiarDatosDelPacienteAnterior()
+    {
+        Informe1Selector.Limpiar();
+        Informe2Selector.Limpiar();
+        ConservadosTextBox.Clear();
+        AlteradosTextBox.Clear();
+    }
 
     /// <summary>Lee ECC y CUPS automáticamente en cuanto ambos están seleccionados.</summary>
     private async Task LeerDocumentosAsync()

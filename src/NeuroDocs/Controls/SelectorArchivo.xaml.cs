@@ -111,4 +111,6 @@ public partial class SelectorArchivo : UserControl
         Contenedor.BorderBrush = Brushes.Transparent;
         Contenedor.Background = Brushes.Transparent;
     }
+
+    public void Limpiar() => Ruta = null;
 }

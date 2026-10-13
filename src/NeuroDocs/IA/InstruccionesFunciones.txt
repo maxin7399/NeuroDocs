@@ -3,6 +3,7 @@ Te voy a proporcionar uno o dos informes de pruebas cognitivas que evalúan el c
 Tu tarea será identificar cuáles funciones cognitivas están conservadas y cuáles están alteradas.
 
 REGLAS
+- Usa únicamente funciones que aparezcan en los informes adjuntos de este paciente. Cada paciente y cada prueba evalúan funciones distintas, así que las listas cambian de un caso a otro.
 - Clasifica cada función con el nombre tal cual aparece en el informe. No des definiciones, explicaciones ni añadidos.
 - Si recibes dos informes, combina los resultados de ambos en una sola clasificación.
 - Si una función se evalúa por separado en su forma inmediata y a largo plazo, escríbelas como ítems separados.
@@ -13,31 +14,9 @@ REGLAS
 - Si el informe ya incluye su propia clasificación de las funciones (por ejemplo, una tabla de conservados y alterados, una columna con el estado de cada aspecto evaluado o una sección de conclusiones), úsala como fuente principal y respeta lo que indica. Considera "levemente", "moderadamente" y "severamente alterado" como alterado, y "conservado, en el puntaje inferior del rango" como conservado.
 - Cada ítem termina en punto.
 
-EJEMPLO DE FORMATO
+FORMATO DE LA RESPUESTA
+El ejemplo siguiente solo muestra la estructura. No copies ningún nombre de función del ejemplo: cada ítem debe corresponder a una función que aparezca en los informes adjuntos.
 {
-  "conservados": [
-    "Span de Memoria Auditiva en Progresión.",
-    "Memoria Lógica Inmediata.",
-    "Memoria Lógica a Largo Plazo.",
-    "Procesos atencionales.",
-    "Lenguaje (fluidez verbal y vocabulario).",
-    "Praxias y Gnosias.",
-    "Funciones Ejecutivas (habilidades de organización y planeación)."
-  ],
-  "alterados": [
-    "Span de Memoria Auditiva en Regresión.",
-    "Índice de Memoria Auditiva.",
-    "Índice de Memoria Visual.",
-    "Memoria de Trabajo de Estímulos Visuales.",
-    "Capacidad de Memoria Inmediata.",
-    "Memoria a Largo Plazo.",
-    "Memoria Asociativa en su forma inmediata.",
-    "Memoria Asociativa a Largo Plazo.",
-    "Memoria Espacial para Estímulos Visuales en su forma inmediata.",
-    "Memoria Espacial para Estímulos Visuales a Largo Plazo.",
-    "Memoria Visual en su forma Inmediata.",
-    "Memoria Visual a Largo Plazo.",
-    "Capacidad de abstracción espacial.",
-    "Span de símbolos (span de memoria visual)."
-  ]
+  "conservados": ["<Función tal como aparece en el informe>.", "<Otra función conservada>."],
+  "alterados": ["<Función alterada tal como aparece en el informe>."]
 }
