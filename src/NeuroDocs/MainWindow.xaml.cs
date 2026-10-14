@@ -19,7 +19,7 @@ public partial class MainWindow : Window
 
     private readonly PdfTextExtractor _extractor = new();
     private readonly HistoriaClinicaParser _historiaParser = new();
-    private readonly OrdenServicioParser _ordenParser = new();
+    private readonly LectorOrden _lectorOrden = new();
     private readonly FirmaExtractor _firmaExtractor = new();
     private readonly GeneradorPlanWord _generador = new();
     private readonly ConvertidorPdfWord _convertidorPdf = new();
@@ -78,19 +78,27 @@ public partial class MainWindow : Window
             var lectura = await Task.Run(() =>
             {
                 var lineasHistoria = _extractor.ExtractLines(rutaHistoria);
+                _lectorOrden.TryParse(_extractor.ExtractLines(rutaOrden), out var ordenLeida);
                 return (
                     Paciente: _historiaParser.Parse(lineasHistoria),
-                    Orden: _ordenParser.Parse(_extractor.ExtractLines(rutaOrden)),
+                    Orden: ordenLeida,
                     Firma: _firmaExtractor.Extraer(rutaHistoria, lineasHistoria));
             });
 
             if (version != _versionLectura) return;
 
-            _lectura = lectura;
-            MostrarResumen(lectura.Paciente, lectura.Orden);
+            if (lectura.Orden is not { } orden)
+            {
+                ResumenBorder.Visibility = Visibility.Collapsed;
+                MostrarAviso(TipoAviso.Error, LectorOrden.MensajeNoReconocido);
+                return;
+            }
+
+            _lectura = (lectura.Paciente, orden, lectura.Firma);
+            MostrarResumen(lectura.Paciente, orden);
             GenerarButton.IsEnabled = true;
 
-            var advertencias = ValidadorDocumentos.Validar(lectura.Paciente, lectura.Orden).ToList();
+            var advertencias = ValidadorDocumentos.Validar(lectura.Paciente, orden).ToList();
             if (lectura.Firma is null)
                 advertencias.Add("No se encontró la firma del profesional en la historia clínica.");
 
@@ -401,12 +409,13 @@ public partial class MainWindow : Window
         sb.AppendLine($"\nDIAGNÓSTICO (fuente: {plan.OrigenDiagnostico})");
         sb.AppendLine(plan.Diagnostico.Length > 0 ? plan.Diagnostico : NoEncontrado);
 
-        sb.AppendLine("\nORDEN DE SERVICIO");
+        sb.AppendLine(plan.Orden.Tipo == TipoOrden.OrdenCobro ? "\nORDEN DE COBRO" : "\nSOLICITUD DE ORDEN DE SERVICIO");
         sb.AppendLine($"Sesiones mensuales: {plan.Orden.SesionesMensuales?.ToString() ?? NoEncontrado}");
         sb.AppendLine($"Meses de terapia: {plan.Orden.Meses?.ToString() ?? NoEncontrado}");
-        sb.AppendLine(plan.Orden.Cie10Codigo is null
+        if (plan.Orden.CantidadAutorizada is { } cantidad) sb.AppendLine($"Cantidad autorizada: {cantidad}");
+        sb.AppendLine(plan.Orden.Cie10Codigo is not { } codigo
             ? $"CIE-10: {NoEncontrado}"
-            : $"CIE-10: {plan.Orden.Cie10Codigo} - {plan.Orden.Cie10Descripcion}");
+            : plan.Orden.Cie10Descripcion is { } descripcion ? $"CIE-10: {codigo} - {descripcion}" : $"CIE-10: {codigo}");
 
         sb.AppendLine("\nPLAN");
         sb.AppendLine($"Emisión del Plan: {FormatoFecha.MesAnio(plan.EmisionPlan)}");

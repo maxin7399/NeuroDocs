@@ -6,6 +6,7 @@ namespace NeuroDocs.Services;
 
 public sealed class OrdenServicioParser
 {
+    private const double SaltoMaximoPt = 14;
     // "10 SESIONES MENSUALES POR 3 MESES": la frase se parte en dos líneas, por eso se busca en el texto unido.
     private static readonly Regex SesionesMesesRegex = new(
         @"(\d+)\s+sesiones\s+mensuales\s+por\s+(\d+)\s+mes",
@@ -29,6 +30,7 @@ public sealed class OrdenServicioParser
         var (codigo, descripcion) = ExtraerCie10(lines);
 
         return new DatosOrden(
+            TipoOrden.SolicitudServicio,
             documento.Success ? documento.Groups[1].Value : null,
             sesionesMeses.Success ? int.Parse(sesionesMeses.Groups[1].Value) : null,
             sesionesMeses.Success ? int.Parse(sesionesMeses.Groups[2].Value) : null,
@@ -43,10 +45,19 @@ public sealed class OrdenServicioParser
             if (!Normalizar(lines[i].Text).Contains("diagnostico cie-10")) continue;
 
             var match = Cie10Regex.Match(lines[i + 1].Text.Trim());
-            if (match.Success)
+            if (!match.Success) continue;
+
+            string descripcion = match.Groups[2].Value.Trim();
+
+            // La descripción puede continuar en las líneas siguientes (p. ej. R418 ocupa dos líneas).
+            for (int j = i + 2;
+                 j < lines.Count && lines[j].Page == lines[j - 1].Page && lines[j - 1].Y - lines[j].Y <= SaltoMaximoPt;
+                 j++)
             {
-                return (match.Groups[1].Value, match.Groups[2].Value.Trim());
+                descripcion += " " + lines[j].Text.Trim();
             }
+
+            return (match.Groups[1].Value, descripcion);
         }
         return (null, null);
     }

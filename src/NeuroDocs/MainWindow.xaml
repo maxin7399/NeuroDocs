@@ -59,9 +59,9 @@
                                 <TextBlock Text="Documentos del paciente" Style="{StaticResource TituloPasoStyle}"/>
                             </StackPanel>
 
-                            <c:SelectorArchivo x:Name="HistoriaSelector" Titulo="Historia clínica (ECC)"
+                            <c:SelectorArchivo x:Name="HistoriaSelector" Titulo="Examen (ECC, AD4, AD5)"
                                                RutaCambiada="DocumentoPaciente_RutaCambiada"/>
-                            <c:SelectorArchivo x:Name="OrdenSelector" Titulo="Orden de servicio (CUPS)"
+                            <c:SelectorArchivo x:Name="OrdenSelector" Titulo="Orden (servicio o cobro)"
                                                RutaCambiada="DocumentoPaciente_RutaCambiada"/>
 
                             <Grid Margin="10,4,10,0">
