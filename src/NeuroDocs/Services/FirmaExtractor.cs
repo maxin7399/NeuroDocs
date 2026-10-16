@@ -49,8 +49,8 @@ public sealed class FirmaExtractor
 
             if (!TryObtenerBytes(imagen, out var bytes, out var formato)) continue;
 
-            return new Firma(bytes, formato, imagen.Bounds.Width, imagen.Bounds.Height,
-                             BloqueDebajo(lineasPagina, imagen.Bounds.Bottom));
+            return RecorteFirma.Recortar(new Firma(bytes, formato, imagen.Bounds.Width, imagen.Bounds.Height,
+                                                   BloqueDebajo(lineasPagina, imagen.Bounds.Bottom)));
         }
 
         return null;

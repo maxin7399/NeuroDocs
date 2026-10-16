@@ -284,11 +284,16 @@ public partial class MainWindow : Window
         await GenerarPdfAsync(
             NombreSugerido(rutaHistoria, plan.EmisionPlan, "PlanReha"),
             GuardarWordCheckBox.IsChecked == true,
-            rutaDocx => _generador.Generar(RutaPlantilla, rutaDocx, plan));
+            rutaDocx => _generador.Generar(RutaPlantilla, rutaDocx, plan),
+            maximoPaginas: 1); // el centro exige que el plan sea de una sola página
     }
 
-    /// <summary>Pide dónde guardar, crea el Word (temporal o junto al PDF) y lo exporta a PDF.</summary>
-    private async Task GenerarPdfAsync(string nombreSugerido, bool conservarWord, Action<string> crearDocx)
+    /// <summary>
+    /// Pide dónde guardar, crea el Word (temporal o junto al PDF) y lo exporta a PDF.
+    /// Si el documento supera <paramref name="maximoPaginas"/>, se guarda igual pero se avisa.
+    /// </summary>
+    private async Task GenerarPdfAsync(string nombreSugerido, bool conservarWord, Action<string> crearDocx,
+                                       int? maximoPaginas = null)
     {
         var dialogo = new SaveFileDialog
         {
@@ -311,10 +316,20 @@ public partial class MainWindow : Window
         try
         {
             await Task.Run(() => crearDocx(rutaDocx));
-            await _convertidorPdf.ConvertirAsync(rutaDocx, rutaPdf);
+            int paginas = await _convertidorPdf.ConvertirAsync(rutaDocx, rutaPdf);
 
-            MostrarAviso(TipoAviso.Exito, $"Documento guardado: {Path.GetFileName(rutaPdf)}",
-                         "Abrir PDF", () => AbrirArchivo(rutaPdf));
+            if (paginas > maximoPaginas)
+            {
+                MostrarAviso(TipoAviso.Advertencia,
+                    $"El documento quedó de {paginas} páginas y debe ser de {maximoPaginas}. " +
+                    "Acorta las listas de conservados y alterados (por ejemplo, agrupando ítems de una misma prueba) y genera de nuevo.",
+                    "Abrir PDF", () => AbrirArchivo(rutaPdf));
+            }
+            else
+            {
+                MostrarAviso(TipoAviso.Exito, $"Documento guardado: {Path.GetFileName(rutaPdf)}",
+                             "Abrir PDF", () => AbrirArchivo(rutaPdf));
+            }
         }
         catch (IOException ex)
         {

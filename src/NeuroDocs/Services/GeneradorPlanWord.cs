@@ -57,8 +57,9 @@ public sealed class GeneradorPlanWord
         }
         string relacionId = main.GetIdOfPart(parteImagen);
 
-        // Imagen: alineada a la derecha, con espacio respecto a "Materiales" (720 twips = 36 pt).
-        var parrafoImagen = CrearParrafoDerecha(materiales, espacioAntesTwips: 720);
+        // Imagen: alineada a la derecha, con poco espacio respecto a "Materiales" (120 twips = 6 pt)
+        // para que el plan quepa en una sola página.
+        var parrafoImagen = CrearParrafoDerecha(materiales, espacioAntesTwips: 120);
         parrafoImagen.Append(new Run(CrearDibujo(
             relacionId,
             (long)(firma.AnchoPt * EscalaFirma * EmuPorPunto),

@@ -12,6 +12,7 @@ REGLAS
 - No incluyas puntajes ni valores numéricos.
 - Antes de dejar una lista vacía, revisa de nuevo todos los informes: lo habitual es que haya al menos una función conservada. Aun así, no inventes funciones que no estén en los informes.
 - Si el informe ya incluye su propia clasificación de las funciones (por ejemplo, una tabla de conservados y alterados, una columna con el estado de cada aspecto evaluado o una sección de conclusiones), úsala como fuente principal y respeta lo que indica. Considera "levemente", "moderadamente" y "severamente alterado" como alterado, y "conservado, en el puntaje inferior del rango" como conservado.
+- Las listas van en un plan que debe caber en una sola página: procura no superar unos 15 ítems por lista. Para lograrlo, agrupa en un solo ítem los índices o subpruebas de una misma función, nombrando cada componente (por ejemplo: "<Función>: <componente 1>, <componente 2> y <componente 3>."). Nunca omitas una función para acortar la lista: agrúpala. La forma inmediata y la forma a largo plazo de una función siguen siendo ítems separados.
 - Cada ítem termina en punto.
 
 FORMATO DE LA RESPUESTA

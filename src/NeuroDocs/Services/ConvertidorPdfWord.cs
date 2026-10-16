@@ -10,12 +10,16 @@ public sealed class ConvertidorPdfWord
     private const int WdExportOptimizeForPrint = 0;
     private const int WdDoNotSaveChanges = 0;
     private const int WdAlertsNone = 0;
+    private const int WdStatisticPages = 2;
 
-    /// <summary>Word (COM) debe usarse desde un hilo STA; se crea uno dedicado para no congelar la ventana.</summary>
-    public Task ConvertirAsync(string rutaDocx, string rutaPdf) =>
+    /// <summary>
+    /// Word (COM) debe usarse desde un hilo STA; se crea uno dedicado para no congelar la ventana.
+    /// Devuelve el número de páginas del documento según la paginación de Word.
+    /// </summary>
+    public Task<int> ConvertirAsync(string rutaDocx, string rutaPdf) =>
         EjecutarEnSta(() => Convertir(rutaDocx, rutaPdf));
 
-    private static void Convertir(string rutaDocx, string rutaPdf)
+    private static int Convertir(string rutaDocx, string rutaPdf)
     {
         var tipoWord = Type.GetTypeFromProgID("Word.Application")
             ?? throw new InvalidOperationException(
@@ -32,11 +36,16 @@ public sealed class ConvertidorPdfWord
             documento = word.Documents.Open(
                 FileName: rutaDocx, ReadOnly: true, AddToRecentFiles: false, Visible: false);
 
+            // Misma paginación que usará el PDF (el plan debe caber en una página).
+            int paginas = (int)documento.ComputeStatistics(WdStatisticPages);
+
             documento.ExportAsFixedFormat(
                 OutputFileName: rutaPdf,
                 ExportFormat: WdExportFormatPdf,
                 OpenAfterExport: false,
                 OptimizeFor: WdExportOptimizeForPrint);
+
+            return paginas;
         }
         finally
         {
@@ -54,15 +63,14 @@ public sealed class ConvertidorPdfWord
         }
     }
 
-    private static Task EjecutarEnSta(Action accion)
+    private static Task<T> EjecutarEnSta<T>(Func<T> accion)
     {
-        var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var tcs = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
         var hilo = new Thread(() =>
         {
             try
             {
-                accion();
-                tcs.SetResult();
+                tcs.SetResult(accion());
             }
             catch (Exception ex)
             {
