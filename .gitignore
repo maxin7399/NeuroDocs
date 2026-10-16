@@ -488,3 +488,5 @@ $RECYCLE.BIN/
 muestras/
 # Paquetes generados por publicar.ps1
 publish/
+# Contiene la firma real del profesional: no se versiona (respaldarla aparte)
+src/NeuroDocs/Plantillas/PlantillaInformeEvolucion.docx

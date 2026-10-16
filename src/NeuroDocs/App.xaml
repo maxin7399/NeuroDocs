@@ -90,6 +90,39 @@
                     </Setter.Value>
                 </Setter>
             </Style>
+            
+            <!-- Pestañas tipo botón segmentado: la activa se rellena con el color de acento. -->
+            <Style x:Key="PestanaStyle" TargetType="TabItem">
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Margin" Value="0,0,8,4"/>
+                <Setter Property="Foreground" Value="{StaticResource TextoPrincipalBrush}"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TabItem">
+                            <Border x:Name="Fondo" Background="Transparent" CornerRadius="6" Padding="18,8"
+                        BorderThickness="1" BorderBrush="{StaticResource BordeTarjetaBrush}">
+                                <ContentPresenter x:Name="Contenido" ContentSource="Header"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                                      TextElement.FontSize="14"
+                                      TextElement.Foreground="{StaticResource TextoSecundarioBrush}"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Fondo" Property="Background" Value="{StaticResource PestanaHoverBrush}"/>
+                                    <Setter TargetName="Contenido" Property="TextElement.Foreground" Value="{StaticResource TextoPrincipalBrush}"/>
+                                </Trigger>
+                                <!-- Va después del hover para que la pestaña activa no cambie al pasar el mouse. -->
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter TargetName="Fondo" Property="Background" Value="{StaticResource AcentoBrush}"/>
+                                    <Setter TargetName="Fondo" Property="BorderBrush" Value="{StaticResource AcentoBrush}"/>
+                                    <Setter TargetName="Contenido" Property="TextElement.Foreground" Value="White"/>
+                                    <Setter TargetName="Contenido" Property="TextElement.FontWeight" Value="SemiBold"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

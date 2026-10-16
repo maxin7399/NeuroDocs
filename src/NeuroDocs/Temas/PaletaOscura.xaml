@@ -27,4 +27,7 @@
     <SolidColorBrush x:Key="AvisoAdvertenciaIconoBrush" Color="#FCE100"/>
     <SolidColorBrush x:Key="AvisoErrorFondoBrush" Color="#442726"/>
     <SolidColorBrush x:Key="AvisoErrorIconoBrush" Color="#FF99A4"/>
+
+    <!-- Hover -->
+    <SolidColorBrush x:Key="PestanaHoverBrush" Color="#333333"/>
 </ResourceDictionary>

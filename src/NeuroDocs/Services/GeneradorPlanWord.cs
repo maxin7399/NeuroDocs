@@ -4,6 +4,7 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using NeuroDocs.Models;
 using static NeuroDocs.Services.TextoUtil;
+using static NeuroDocs.Services.WordUtil;
 using A = DocumentFormat.OpenXml.Drawing;
 using DW = DocumentFormat.OpenXml.Drawing.Wordprocessing;
 using PIC = DocumentFormat.OpenXml.Drawing.Pictures;
@@ -135,67 +136,7 @@ public sealed class GeneradorPlanWord
             )
             { DistanceFromTop = 0U, DistanceFromBottom = 0U, DistanceFromLeft = 0U, DistanceFromRight = 0U });
 
-    private static void LlenarIdentificacion(Body body, DatosPaciente paciente)
-    {
-        foreach (var campo in CamposPaciente.Todos)
-        {
-            var parrafo = BuscarParrafo(body, CamposPaciente.Etiquetas[campo]);
 
-            if (paciente.Campos.TryGetValue(campo, out var valor))
-            {
-                EscribirValor(parrafo, valor, negrita: false);
-            }
-            else if (CamposPaciente.Opcionales.Contains(campo))
-            {
-                parrafo.Remove(); // el plan final no muestra la línea si el dato no existe
-            }
-            else
-            {
-                EscribirValor(parrafo, "", negrita: false);
-            }
-        }
-    }
-
-    private static void LlenarCampo(Body body, IReadOnlyList<string> etiquetas, string valor, bool negrita = false) =>
-        EscribirValor(BuscarParrafo(body, etiquetas), valor, negrita);
-
-    private static Paragraph BuscarParrafo(Body body, IReadOnlyList<string> etiquetas) =>
-        body.Descendants<Paragraph>().FirstOrDefault(p => etiquetas.Any(e => EmpiezaConEtiqueta(p.InnerText, e)))
-        ?? throw new InvalidOperationException($"La plantilla no contiene la etiqueta \"{etiquetas[0]}:\".");
-
-    /// <summary>
-    /// Deja la etiqueta tal cual (con su formato), elimina lo que haya después de los dos puntos
-    /// (p. ej. el "." suelto de "Ocupación:." o el "X" de los meses) y agrega el valor.
-    /// </summary>
-    private static void EscribirValor(Paragraph parrafo, string valor, bool negrita)
-    {
-        var runEtiqueta = parrafo.Elements<Run>().FirstOrDefault(r => r.InnerText.Contains(':'))
-            ?? throw new InvalidOperationException($"Formato inesperado en la línea \"{parrafo.InnerText}\".");
-
-        foreach (var siguiente in runEtiqueta.ElementsAfter().ToList())
-        {
-            siguiente.Remove();
-        }
-
-        string textoEtiqueta = runEtiqueta.InnerText;
-        textoEtiqueta = textoEtiqueta[..(textoEtiqueta.IndexOf(':') + 1)] + " ";
-        runEtiqueta.RemoveAllChildren<Text>();
-        runEtiqueta.AppendChild(new Text(textoEtiqueta) { Space = SpaceProcessingModeValues.Preserve });
-
-        if (string.IsNullOrEmpty(valor)) return;
-
-        // El valor hereda fuente y tamaño de la etiqueta; solo cambia la negrita.
-        var propiedades = runEtiqueta.RunProperties?.CloneNode(true) as RunProperties ?? new RunProperties();
-        propiedades.Bold = negrita ? new Bold() : null;
-        propiedades.BoldComplexScript = negrita ? new BoldComplexScript() : null;
-
-        runEtiqueta.InsertAfterSelf(new Run(propiedades, new Text(valor) { Space = SpaceProcessingModeValues.Preserve }));
-    }
-
-    private static string FormatearTiempo(DatosOrden orden) =>
-        orden is { SesionesMensuales: { } sesiones, Meses: { } meses }
-            ? $"{sesiones} SESIONES MENSUALES POR {meses} MESES"
-            : "";
 
     // ───────────── Tabla de funciones ─────────────
 

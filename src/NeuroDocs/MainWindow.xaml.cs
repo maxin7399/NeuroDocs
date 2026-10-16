@@ -28,6 +28,14 @@ public partial class MainWindow : Window
     private ResultadoWindow? _ventanaResultado;
     private int _versionLectura;   // descarta lecturas viejas si cambian los archivos mientras se leen
     private Action? _accionAviso;
+    private static readonly string RutaPlantillaInforme =
+    Path.Combine(AppContext.BaseDirectory, "Plantillas", "PlantillaInformeEvolucion.docx");
+
+    private readonly GeneradorInformeWord _generadorInforme = new();
+    private TipoInforme? _tipoRedactado; // con qué tipo se redactó el texto actual
+
+    private TipoInforme TipoSeleccionado =>
+        TipoFinalRadio.IsChecked == true ? TipoInforme.Final : TipoInforme.EvolucionMensual;
 
     public MainWindow()
     {
@@ -36,6 +44,7 @@ public partial class MainWindow : Window
         VersionText.ToolTip = InfoAplicacion.VersionCompleta;
         InicializarEmisionPlan();
         ActualizarConteos();
+        ActualizarConteosInforme();
     }
 
     // ───────────── Paso 1: documentos del paciente ─────────────
@@ -54,13 +63,21 @@ public partial class MainWindow : Window
         Informe2Selector.Limpiar();
         ConservadosTextBox.Clear();
         AlteradosTextBox.Clear();
+
+        EvaluacionSelector.Limpiar();
+        CondicionTextBox.Clear();
+        PlanTextBox.Clear();
+        TipoMensualRadio.IsChecked = true;
+        _tipoRedactado = null;
     }
 
     /// <summary>Lee ECC y CUPS automáticamente en cuanto ambos están seleccionados.</summary>
     private async Task LeerDocumentosAsync()
     {
+        int version = ++_versionLectura;
+
         _lectura = null;
-        GenerarButton.IsEnabled = false;
+        ActualizarBotonesGenerar();
         _ventanaResultado?.Close();
         OcultarAviso();
 
@@ -70,7 +87,6 @@ public partial class MainWindow : Window
             return;
         }
 
-        int version = ++_versionLectura;
         MostrarResumenCargando();
 
         try
@@ -96,7 +112,7 @@ public partial class MainWindow : Window
 
             _lectura = (lectura.Paciente, orden, lectura.Firma);
             MostrarResumen(lectura.Paciente, orden);
-            GenerarButton.IsEnabled = true;
+            ActualizarBotonesGenerar();
 
             var advertencias = ValidadorDocumentos.Validar(lectura.Paciente, orden).ToList();
             if (lectura.Firma is null)
@@ -112,6 +128,21 @@ public partial class MainWindow : Window
             ResumenBorder.Visibility = Visibility.Collapsed;
             MostrarAviso(TipoAviso.Error, $"No se pudieron leer los documentos: {ex.Message}");
         }
+    }
+    private void ActualizarBotonesGenerar()
+    {
+        bool listo = _lectura is not null;
+        GenerarButton.IsEnabled = listo;
+        GenerarInformeButton.IsEnabled = listo;
+    }
+    private void ModoTabs_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        // Solo cambios de pestaña, no selecciones de controles internos que burbujean hasta aquí.
+        if (e.Source != ModoTabs || PlanIzquierda is null || InformeIzquierda is null) return;
+
+        bool informe = ModoTabs.SelectedIndex == 1;
+        PlanIzquierda.Visibility = informe ? Visibility.Collapsed : Visibility.Visible;
+        InformeIzquierda.Visibility = informe ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void MostrarResumenCargando()
@@ -156,8 +187,13 @@ public partial class MainWindow : Window
             .ToList();
         AnioCombo.ItemsSource = Enumerable.Range(hoy.Year - 1, 3).ToList();
 
-        MesCombo.SelectedValue = hoy.Month;
-        AnioCombo.SelectedItem = hoy.Year;
+        SeleccionarMesActual();
+    }
+
+    private void SeleccionarMesActual()
+    {
+        MesCombo.SelectedValue = DateTime.Today.Month;
+        AnioCombo.SelectedItem = DateTime.Today.Year;
     }
 
     private DateOnly EmisionPlan => new((int)AnioCombo.SelectedItem, (int)MesCombo.SelectedValue, 1);
@@ -197,21 +233,9 @@ public partial class MainWindow : Window
 
             MostrarAviso(TipoAviso.Exito, "Sugerencia lista. Revisa ambas listas antes de generar el plan.");
         }
-        catch (HttpRequestException ex)
-        {
-            MostrarAviso(TipoAviso.Error, $"No se pudo conectar con Gemini. Revisa la conexión a internet. ({ex.Message})");
-        }
-        catch (TaskCanceledException)
-        {
-            MostrarAviso(TipoAviso.Error, "Gemini tardó demasiado en responder. Intenta de nuevo.");
-        }
-        catch (IOException ex)
-        {
-            MostrarAviso(TipoAviso.Error, $"No se pudo leer uno de los informes. Si está abierto en otro programa, ciérralo. ({ex.Message})");
-        }
-        catch (Exception ex)
-        {
-            MostrarAviso(TipoAviso.Error, ex.Message);
+        catch (Exception ex) 
+        { 
+            MostrarErrorIA(ex); 
         }
         finally
         {
@@ -239,12 +263,7 @@ public partial class MainWindow : Window
     private async void GenerarButton_Click(object sender, RoutedEventArgs e)
     {
         if (_lectura is not { } lectura || HistoriaSelector.Ruta is not { } rutaHistoria) return;
-
-        if (!File.Exists(RutaPlantilla))
-        {
-            MostrarAviso(TipoAviso.Error, $"No se encontró la plantilla en: {RutaPlantilla}");
-            return;
-        }
+        if (!ExistePlantilla(RutaPlantilla)) return;
 
         var plan = ConstruirPlan(lectura.Paciente, lectura.Orden, lectura.Firma);
 
@@ -262,30 +281,39 @@ public partial class MainWindow : Window
             return;
         }
 
+        await GenerarPdfAsync(
+            NombreSugerido(rutaHistoria, plan.EmisionPlan, "PlanReha"),
+            GuardarWordCheckBox.IsChecked == true,
+            rutaDocx => _generador.Generar(RutaPlantilla, rutaDocx, plan));
+    }
+
+    /// <summary>Pide dónde guardar, crea el Word (temporal o junto al PDF) y lo exporta a PDF.</summary>
+    private async Task GenerarPdfAsync(string nombreSugerido, bool conservarWord, Action<string> crearDocx)
+    {
         var dialogo = new SaveFileDialog
         {
-            Title = "Guardar plan de rehabilitación",
+            Title = "Guardar documento",
             Filter = "Documento PDF (*.pdf)|*.pdf",
-            FileName = NombreSugerido(rutaHistoria, plan.EmisionPlan) + ".pdf",
-            InitialDirectory = Path.GetDirectoryName(rutaHistoria)
+            FileName = nombreSugerido + ".pdf",
+            InitialDirectory = HistoriaSelector.Ruta is { } ruta ? Path.GetDirectoryName(ruta) : null
         };
         if (dialogo.ShowDialog() != true) return;
 
         string rutaPdf = dialogo.FileName;
-        bool conservarWord = GuardarWordCheckBox.IsChecked == true;
         string rutaDocx = conservarWord
             ? Path.ChangeExtension(rutaPdf, ".docx")
             : Path.Combine(Path.GetTempPath(), $"NeuroDocs_{Guid.NewGuid():N}.docx");
 
         GenerarButton.IsEnabled = false;
+        GenerarInformeButton.IsEnabled = false;
         Mouse.OverrideCursor = Cursors.Wait;
-        MostrarAviso(TipoAviso.Informacion, "Generando el plan…");
+        MostrarAviso(TipoAviso.Informacion, "Generando el documento…");
         try
         {
-            await Task.Run(() => _generador.Generar(RutaPlantilla, rutaDocx, plan));
+            await Task.Run(() => crearDocx(rutaDocx));
             await _convertidorPdf.ConvertirAsync(rutaDocx, rutaPdf);
 
-            MostrarAviso(TipoAviso.Exito, $"Plan guardado: {Path.GetFileName(rutaPdf)}",
+            MostrarAviso(TipoAviso.Exito, $"Documento guardado: {Path.GetFileName(rutaPdf)}",
                          "Abrir PDF", () => AbrirArchivo(rutaPdf));
         }
         catch (IOException ex)
@@ -298,18 +326,26 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            MostrarAviso(TipoAviso.Error, $"No se pudo generar el plan: {ex.Message}");
+            MostrarAviso(TipoAviso.Error, $"No se pudo generar el documento: {ex.Message}");
         }
         finally
         {
             Mouse.OverrideCursor = null;
-            GenerarButton.IsEnabled = _lectura is not null;
+            ActualizarBotonesGenerar();
 
             if (!conservarWord)
             {
                 try { File.Delete(rutaDocx); } catch (IOException) { }
             }
         }
+    }
+
+    private bool ExistePlantilla(string ruta)
+    {
+        if (File.Exists(ruta)) return true;
+
+        MostrarAviso(TipoAviso.Error, $"No se encontró la plantilla en: {ruta}");
+        return false;
     }
 
     private DatosPlan ConstruirPlan(DatosPaciente paciente, DatosOrden orden, Firma? firma) =>
@@ -320,12 +356,13 @@ public partial class MainWindow : Window
             firma);
 
     /// <summary>"OscarminMuñozJimenezECC.pdf" → "OscarminMuñozJimenezPlanRehaSeptiembre2026"</summary>
-    private static string NombreSugerido(string rutaHistoria, DateOnly emision)
+    /// <summary>"OscarminMuñozJimenezECC.pdf" + "EVM" → "OscarminMuñozJimenezEVMOctubre2026"</summary>
+    private static string NombreSugerido(string rutaHistoria, DateOnly emision, string tipoDocumento)
     {
         string nombre = Path.GetFileNameWithoutExtension(rutaHistoria);
         if (nombre.EndsWith("ECC", StringComparison.OrdinalIgnoreCase)) nombre = nombre[..^3];
 
-        return $"{nombre}PlanReha{FormatoFecha.NombreMes(emision.Month)}{emision.Year}";
+        return $"{nombre}{tipoDocumento}{FormatoFecha.NombreMes(emision.Month)}{emision.Year}";
     }
 
     private static void AbrirArchivo(string ruta) =>
@@ -373,6 +410,28 @@ public partial class MainWindow : Window
 
     private void ConfiguracionButton_Click(object sender, RoutedEventArgs e) =>
         new ConfiguracionWindow { Owner = this }.ShowDialog();
+    private void LimpiarButton_Click(object sender, RoutedEventArgs e)
+    {
+        bool hayListas = !string.IsNullOrWhiteSpace(ConservadosTextBox.Text)
+              || !string.IsNullOrWhiteSpace(AlteradosTextBox.Text)
+              || !string.IsNullOrWhiteSpace(CondicionTextBox.Text)
+              || !string.IsNullOrWhiteSpace(PlanTextBox.Text);
+
+        if (hayListas &&
+            MessageBox.Show("Se quitarán todos los documentos y se borrarán las listas de Conservados y Alterados. ¿Continuar?",
+                            "Limpiar", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        // Al vaciar los selectores se disparan sus eventos: se ocultan el resumen y los avisos,
+        // se desactiva Generar y se cierra la ventana de datos.
+        HistoriaSelector.Limpiar();
+        OrdenSelector.Limpiar();
+        LimpiarDatosDelPacienteAnterior(); // informes para la IA + listas
+        SeleccionarMesActual();
+        OcultarAviso();
+    }
 
     private void MostrarResultado(string texto)
     {
@@ -444,4 +503,113 @@ public partial class MainWindow : Window
         if (items.Count == 0) sb.AppendLine("(sin datos)");
         foreach (var item in items) sb.AppendLine($"• {item}");
     }
+    // ───────────── Informe de evolución ─────────────
+
+    private void Evaluacion_RutaCambiada(object? sender, EventArgs e) =>
+        RedactarIAButton.IsEnabled = EvaluacionSelector.Ruta is not null;
+
+    private void TipoInforme_Checked(object sender, RoutedEventArgs e)
+    {
+        if (_tipoRedactado is { } redactado && redactado != TipoSeleccionado)
+        {
+            MostrarAviso(TipoAviso.Advertencia,
+                "Cambiaste el tipo de informe después de redactarlo. Vuelve a pulsar «Redactar con IA» para que el Plan actual corresponda (continuar o cerrar el proceso).");
+        }
+    }
+
+    private async void RedactarIAButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (EvaluacionSelector.Ruta is not { } ruta) return;
+
+        bool hayTexto = !string.IsNullOrWhiteSpace(CondicionTextBox.Text) || !string.IsNullOrWhiteSpace(PlanTextBox.Text);
+        if (hayTexto &&
+            MessageBox.Show("Esto reemplazará la Condición actual y el Plan actual. ¿Continuar?", "Redactar con IA",
+                            MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        var tipo = TipoSeleccionado;
+        RedactarIAButton.IsEnabled = false;
+        Mouse.OverrideCursor = Cursors.Wait;
+        MostrarAviso(TipoAviso.Informacion, "Leyendo la evaluación y consultando a Gemini…");
+        try
+        {
+            string evoluciones = LectorEvaluacion.LeerTexto(ruta); // hilo de UI: el RTF lo exige y es instantáneo
+
+            string? genero = _lectura?.Paciente.Campos.GetValueOrDefault(CamposPaciente.Genero);
+            string? diagnostico = _lectura is { } l ? ResolverDiagnostico.Texto(l.Paciente, l.Orden) : null;
+
+            var redactor = new RedactorInformeGemini(ConfiguracionGemini.Cargar());
+            var texto = await redactor.RedactarAsync(evoluciones, tipo, genero,
+                                                     string.IsNullOrWhiteSpace(diagnostico) ? null : diagnostico);
+
+            CondicionTextBox.Text = texto.CondicionActual;
+            PlanTextBox.Text = texto.PlanActual;
+            _tipoRedactado = tipo;
+
+            MostrarAviso(TipoAviso.Exito, "Informe redactado. Revisa la Condición actual y el Plan actual antes de generar.");
+        }
+        catch (Exception ex)
+        {
+            MostrarErrorIA(ex);
+        }
+        finally
+        {
+            Mouse.OverrideCursor = null;
+            RedactarIAButton.IsEnabled = EvaluacionSelector.Ruta is not null;
+        }
+    }
+
+    private async void GenerarInformeButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_lectura is not { } lectura || HistoriaSelector.Ruta is not { } rutaHistoria) return;
+        if (!ExistePlantilla(RutaPlantillaInforme)) return;
+
+        string condicion = CondicionTextBox.Text.Trim();
+        string planActual = PlanTextBox.Text.Trim();
+
+        if ((condicion.Length == 0 || planActual.Length == 0) &&
+            MessageBox.Show("La Condición actual o el Plan actual están vacíos. ¿Generar de todas formas?",
+                            "Informe incompleto", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        var informe = new DatosInforme(lectura.Paciente, lectura.Orden, EmisionPlan,
+                                       DateOnly.FromDateTime(DateTime.Today), condicion, planActual);
+
+        await GenerarPdfAsync(
+            NombreSugerido(rutaHistoria, informe.EmisionPlan, "EVM"),
+            GuardarWordInformeCheckBox.IsChecked == true,
+            rutaDocx => _generadorInforme.Generar(RutaPlantillaInforme, rutaDocx, informe));
+    }
+
+    private void Informe_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e) =>
+        ActualizarConteosInforme();
+
+    private void ActualizarConteosInforme()
+    {
+        if (CondicionConteo is null || PlanConteo is null) return; // TextChanged puede llegar antes de crear los contadores
+
+        CondicionConteo.Text = DescribirPalabras(CondicionTextBox.Text);
+        PlanConteo.Text = DescribirPalabras(PlanTextBox.Text);
+    }
+
+    private static string DescribirPalabras(string texto)
+    {
+        int cantidad = texto.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length;
+        return cantidad == 1 ? "1 palabra" : $"{cantidad} palabras";
+    }
+
+    /// <summary>Mensaje de error común para las dos funciones de IA.</summary>
+    private void MostrarErrorIA(Exception ex) => MostrarAviso(TipoAviso.Error, ex switch
+    {
+        HttpRequestException => $"No se pudo conectar con Gemini. Revisa la conexión a internet. ({ex.Message})",
+        TaskCanceledException => "Gemini tardó demasiado en responder. Intenta de nuevo.",
+        FileNotFoundException => ex.Message,
+        IOException => $"No se pudo leer el archivo. Si está abierto en otro programa, ciérralo. ({ex.Message})",
+        _ => ex.Message
+    });
+
 }

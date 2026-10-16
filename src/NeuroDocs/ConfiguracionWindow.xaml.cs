@@ -44,7 +44,7 @@ public partial class ConfiguracionWindow : Window
         ResultadoPruebaText.Text = "Probando conexión…";
         try
         {
-            await ClasificadorFuncionesGemini.VerificarAsync(clave, ModeloIngresado);
+            await ClienteGemini.VerificarAsync(clave, ModeloIngresado);
             ResultadoPruebaText.Text = "✔ Conexión correcta: la clave y el modelo funcionan.";
         }
         catch (Exception ex)

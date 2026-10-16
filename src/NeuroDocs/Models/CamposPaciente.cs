@@ -33,7 +33,7 @@ public static class CamposPaciente
 
     /// <summary>Si no aparecen en el ECC, su línea se elimina del plan.</summary>
     public static readonly IReadOnlySet<string> Opcionales =
-        new HashSet<string> { Lateralidad, ProblemasColegio };
+    new HashSet<string> { Lateralidad, ProblemasColegio, TipoVinculacion };
 
     /// <summary>Campo → etiquetas con las que puede aparecer (en el ECC o en la plantilla).</summary>
     public static readonly IReadOnlyDictionary<string, string[]> Etiquetas = new Dictionary<string, string[]>

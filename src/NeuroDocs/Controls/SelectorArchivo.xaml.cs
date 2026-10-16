@@ -6,19 +6,16 @@ using Microsoft.Win32;
 
 namespace NeuroDocs.Controls;
 
-/// <summary>
-/// Espacio para un PDF: selección por diálogo o arrastrando el archivo, con indicador de cargado
-/// y botón opcional para quitarlo.
-/// </summary>
+/// <summary>Espacio para un archivo: diálogo o arrastrar y soltar, con indicador de cargado y botón opcional para quitarlo.</summary>
 public partial class SelectorArchivo : UserControl
 {
-    private const string TextoVacio = "Ningún archivo · arrastra un PDF aquí";
-    private const string IconoDocumento = "\uE8A5";   // documento
-    private const string IconoCompletado = "\uE930";  // círculo con check
-    private string _iconoVacio = IconoDocumento;
-    private string? _ruta;
+    private const string IconoDocumento = "\uE8A5";
+    private const string IconoCompletado = "\uE930";
 
-    /// <summary>Se dispara al seleccionar, soltar o quitar un archivo. La ruta nueva está en <see cref="Ruta"/>.</summary>
+    private string? _ruta;
+    private string _iconoVacio = IconoDocumento;
+    private string _extensiones = "pdf";
+
     public event EventHandler? RutaCambiada;
 
     public SelectorArchivo()
@@ -33,18 +30,23 @@ public partial class SelectorArchivo : UserControl
         set => TituloText.Text = value;
     }
 
-    /// <summary>Ícono que se muestra mientras no hay archivo. Con archivo se muestra el check.</summary>
     public string Icono
     {
         get => _iconoVacio;
-        set
-        {
-            _iconoVacio = value;
-            ActualizarVista();
-        }
+        set { _iconoVacio = value; ActualizarVista(); }
     }
 
     public bool PermiteQuitar { get; set; }
+
+    /// <summary>Filtro del diálogo de selección.</summary>
+    public string Filtro { get; set; } = "Archivos PDF (*.pdf)|*.pdf";
+
+    /// <summary>Extensiones aceptadas al arrastrar, separadas por comas: "pdf" o "rtf,docx,pdf".</summary>
+    public string Extensiones
+    {
+        get => _extensiones;
+        set { _extensiones = value; ActualizarVista(); }
+    }
 
     public string? Ruta
     {
@@ -57,6 +59,8 @@ public partial class SelectorArchivo : UserControl
         }
     }
 
+    public void Limpiar() => Ruta = null;
+
     private void ActualizarVista()
     {
         bool hayArchivo = _ruta is not null;
@@ -64,18 +68,16 @@ public partial class SelectorArchivo : UserControl
         IconoText.Text = hayArchivo ? IconoCompletado : _iconoVacio;
         IconoText.Foreground = (Brush)FindResource(hayArchivo ? "ExitoBrush" : "TextoSecundarioBrush");
 
-        ArchivoText.Text = hayArchivo ? Path.GetFileName(_ruta) : TextoVacio;
+        ArchivoText.Text = hayArchivo
+            ? Path.GetFileName(_ruta)
+            : _extensiones == "pdf" ? "Ningún archivo · arrastra un PDF aquí" : "Ningún archivo · arrastra el archivo aquí";
         ArchivoText.ToolTip = _ruta;
         QuitarButton.Visibility = hayArchivo && PermiteQuitar ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void SeleccionarButton_Click(object sender, RoutedEventArgs e)
     {
-        var dialogo = new OpenFileDialog
-        {
-            Title = $"Seleccionar: {Titulo}",
-            Filter = "Archivos PDF (*.pdf)|*.pdf"
-        };
+        var dialogo = new OpenFileDialog { Title = $"Seleccionar: {Titulo}", Filter = Filtro };
         if (dialogo.ShowDialog() == true) Ruta = dialogo.FileName;
     }
 
@@ -83,17 +85,19 @@ public partial class SelectorArchivo : UserControl
 
     // ───────────── Arrastrar y soltar ─────────────
 
-    private static string? PrimerPdf(DragEventArgs e) =>
-        e.Data.GetData(DataFormats.FileDrop) is string[] archivos
-            ? archivos.FirstOrDefault(a => Path.GetExtension(a).Equals(".pdf", StringComparison.OrdinalIgnoreCase))
-            : null;
+    private bool EsAceptado(string ruta) =>
+        _extensiones.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .Any(ext => Path.GetExtension(ruta).Equals("." + ext, StringComparison.OrdinalIgnoreCase));
+
+    private string? PrimerAceptado(DragEventArgs e) =>
+        e.Data.GetData(DataFormats.FileDrop) is string[] archivos ? archivos.FirstOrDefault(EsAceptado) : null;
 
     private void OnDragOver(object sender, DragEventArgs e)
     {
-        bool esPdf = PrimerPdf(e) is not null;
-        e.Effects = esPdf ? DragDropEffects.Copy : DragDropEffects.None;
-        Contenedor.BorderBrush = esPdf ? (Brush)FindResource("AcentoBrush") : Brushes.Transparent;
-        Contenedor.Background = esPdf ? (Brush)FindResource("AcentoSuaveBrush") : Brushes.Transparent;
+        bool valido = PrimerAceptado(e) is not null;
+        e.Effects = valido ? DragDropEffects.Copy : DragDropEffects.None;
+        Contenedor.BorderBrush = valido ? (Brush)FindResource("AcentoBrush") : Brushes.Transparent;
+        Contenedor.Background = valido ? (Brush)FindResource("AcentoSuaveBrush") : Brushes.Transparent;
         e.Handled = true;
     }
 
@@ -102,7 +106,7 @@ public partial class SelectorArchivo : UserControl
     private void OnDrop(object sender, DragEventArgs e)
     {
         QuitarResaltado();
-        if (PrimerPdf(e) is { } ruta) Ruta = ruta;
+        if (PrimerAceptado(e) is { } ruta) Ruta = ruta;
         e.Handled = true;
     }
 
@@ -111,6 +115,4 @@ public partial class SelectorArchivo : UserControl
         Contenedor.BorderBrush = Brushes.Transparent;
         Contenedor.Background = Brushes.Transparent;
     }
-
-    public void Limpiar() => Ruta = null;
 }
