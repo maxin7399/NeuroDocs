@@ -2,4 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/NeuroDocs/NeuroDocs.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/NeuroDocs.Tests/NeuroDocs.Tests.csproj" />
+  </Folder>
 </Solution>
