@@ -282,18 +282,15 @@ public partial class MainWindow : Window
         }
 
         await GenerarPdfAsync(
-            NombreSugerido(rutaHistoria, plan.EmisionPlan, "PlanReha"),
+            NombreSugerido(plan.Paciente, rutaHistoria, plan.EmisionPlan, "PlanReha"),
             GuardarWordCheckBox.IsChecked == true,
-            rutaDocx => _generador.Generar(RutaPlantilla, rutaDocx, plan),
-            maximoPaginas: 1); // el centro exige que el plan sea de una sola página
+            rutaDocx => _generador.Generar(RutaPlantilla, rutaDocx, plan));
     }
 
     /// <summary>
     /// Pide dónde guardar, crea el Word (temporal o junto al PDF) y lo exporta a PDF.
-    /// Si el documento supera <paramref name="maximoPaginas"/>, se guarda igual pero se avisa.
     /// </summary>
-    private async Task GenerarPdfAsync(string nombreSugerido, bool conservarWord, Action<string> crearDocx,
-                                       int? maximoPaginas = null)
+    private async Task GenerarPdfAsync(string nombreSugerido, bool conservarWord, Action<string> crearDocx)
     {
         var dialogo = new SaveFileDialog
         {
@@ -316,20 +313,10 @@ public partial class MainWindow : Window
         try
         {
             await Task.Run(() => crearDocx(rutaDocx));
-            int paginas = await _convertidorPdf.ConvertirAsync(rutaDocx, rutaPdf);
+            await _convertidorPdf.ConvertirAsync(rutaDocx, rutaPdf);
 
-            if (paginas > maximoPaginas)
-            {
-                MostrarAviso(TipoAviso.Advertencia,
-                    $"El documento quedó de {paginas} páginas y debe ser de {maximoPaginas}. " +
-                    "Acorta las listas de conservados y alterados (por ejemplo, agrupando ítems de una misma prueba) y genera de nuevo.",
-                    "Abrir PDF", () => AbrirArchivo(rutaPdf));
-            }
-            else
-            {
-                MostrarAviso(TipoAviso.Exito, $"Documento guardado: {Path.GetFileName(rutaPdf)}",
-                             "Abrir PDF", () => AbrirArchivo(rutaPdf));
-            }
+            MostrarAviso(TipoAviso.Exito, $"Documento guardado: {Path.GetFileName(rutaPdf)}",
+                         "Abrir PDF", () => AbrirArchivo(rutaPdf));
         }
         catch (IOException ex)
         {
@@ -370,12 +357,17 @@ public partial class MainWindow : Window
                 ListaTexto.ParsearItems(AlteradosTextBox.Text)),
             firma);
 
-    /// <summary>"OscarminMuñozJimenezECC.pdf" → "OscarminMuñozJimenezPlanRehaSeptiembre2026"</summary>
-    /// <summary>"OscarminMuñozJimenezECC.pdf" + "EVM" → "OscarminMuñozJimenezEVMOctubre2026"</summary>
-    private static string NombreSugerido(string rutaHistoria, DateOnly emision, string tipoDocumento)
+    /// <summary>
+    /// Nombre del paciente sin espacios + tipo + mes/año: "OscarminMuñozJimenezEVMOctubre2026".
+    /// Se toma del ECC y no del nombre del archivo, que puede traer el nombre de un examen.
+    /// </summary>
+    private static string NombreSugerido(DatosPaciente paciente, string rutaHistoria, DateOnly emision, string tipoDocumento)
     {
-        string nombre = Path.GetFileNameWithoutExtension(rutaHistoria);
+        string nombre = paciente.Campos.TryGetValue(CamposPaciente.Nombre, out var delEcc) && !string.IsNullOrWhiteSpace(delEcc)
+            ? delEcc
+            : Path.GetFileNameWithoutExtension(rutaHistoria);
         if (nombre.EndsWith("ECC", StringComparison.OrdinalIgnoreCase)) nombre = nombre[..^3];
+        nombre = string.Concat(nombre.Where(c => !char.IsWhiteSpace(c)));
 
         return $"{nombre}{tipoDocumento}{FormatoFecha.NombreMes(emision.Month)}{emision.Year}";
     }
@@ -528,7 +520,7 @@ public partial class MainWindow : Window
         if (_tipoRedactado is { } redactado && redactado != TipoSeleccionado)
         {
             MostrarAviso(TipoAviso.Advertencia,
-                "Cambiaste el tipo de informe después de redactarlo. Vuelve a pulsar «Redactar con IA» para que el Plan actual corresponda (continuar o cerrar el proceso).");
+                "Cambiaste el tipo de informe después de redactarlo. Vuelve a pulsar «Sugerir con IA» para que el Plan actual corresponda (continuar o cerrar el proceso).");
         }
     }
 
@@ -538,7 +530,7 @@ public partial class MainWindow : Window
 
         bool hayTexto = !string.IsNullOrWhiteSpace(CondicionTextBox.Text) || !string.IsNullOrWhiteSpace(PlanTextBox.Text);
         if (hayTexto &&
-            MessageBox.Show("Esto reemplazará la Condición actual y el Plan actual. ¿Continuar?", "Redactar con IA",
+            MessageBox.Show("Esto reemplazará la Condición actual y el Plan actual. ¿Continuar?", "Sugerir con IA",
                             MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
         {
             return;
@@ -595,7 +587,7 @@ public partial class MainWindow : Window
                                        DateOnly.FromDateTime(DateTime.Today), condicion, planActual);
 
         await GenerarPdfAsync(
-            NombreSugerido(rutaHistoria, informe.EmisionPlan, "EVM"),
+            NombreSugerido(informe.Paciente, rutaHistoria, informe.EmisionPlan, "EVM"),
             GuardarWordInformeCheckBox.IsChecked == true,
             rutaDocx => _generadorInforme.Generar(RutaPlantillaInforme, rutaDocx, informe));
     }

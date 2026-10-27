@@ -9,7 +9,7 @@ public sealed class LectorOrden
 {
     // Lo habitual en el centro cuando la orden no indica el tiempo de terapia.
     public const int SesionesPorDefecto = 10;
-    public const int MesesPorDefecto = 3;
+    public const int MesesPorDefecto = 1;
 
     public const string MensajeNoReconocido =
         "El PDF de la orden no es una solicitud de orden de servicio (CUPS) ni una orden de cobro. " +

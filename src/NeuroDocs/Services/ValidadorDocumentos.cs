@@ -34,7 +34,7 @@ public static class ValidadorDocumentos
         {
             advertencias.Add(
                 $"La orden no indica el tiempo de terapia. Se usó el valor por defecto: " +
-                $"{LectorOrden.SesionesPorDefecto} sesiones mensuales por {LectorOrden.MesesPorDefecto} meses. Verifícalo antes de generar.");
+                $"{LectorOrden.SesionesPorDefecto} sesiones mensuales por {LectorOrden.MesesPorDefecto} {(LectorOrden.MesesPorDefecto == 1 ? "mes" : "meses")}. Verifícalo antes de generar.");
         }
         return advertencias;
     }

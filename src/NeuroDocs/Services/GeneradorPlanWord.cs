@@ -28,7 +28,7 @@ public sealed class GeneradorPlanWord
 
         LlenarCampo(body, ["Emisión del Plan"], FormatoFecha.MesAnio(plan.EmisionPlan), negrita: true);
         LlenarCampo(body, ["Diagnóstico"], plan.Diagnostico);
-        LlenarCampo(body, ["CIE-10"], plan.Orden.Cie10Codigo ?? "", negrita: true);
+        LlenarCampo(body, ["CIE-10"], plan.Orden.Cie10Codigo ?? "");
         LlenarCampo(body, ["Tiempo de terapia solicitado"], FormatearTiempo(plan.Orden));
 
         LlenarFunciones(main, body, plan.Funciones);

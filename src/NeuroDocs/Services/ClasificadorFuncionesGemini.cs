@@ -3,11 +3,20 @@ using NeuroDocs.Models;
 
 namespace NeuroDocs.Services;
 
-/// <summary>Conservados y alterados a partir de los PDFs de "Información para la IA".</summary>
+/// <summary>Conservados y alterados a partir de los documentos de "Información para la IA".</summary>
 public sealed class ClasificadorFuncionesGemini
 {
     private const string ArchivoInstrucciones = "InstruccionesFunciones.txt";
     private const long LimiteBytes = 20L * 1024 * 1024;
+
+    // PDFs e imágenes van tal cual (Gemini ve tablas y gráficos); el resto se envía como texto.
+    private static readonly Dictionary<string, string> TiposBinarios = new(StringComparer.OrdinalIgnoreCase)
+    {
+        [".pdf"] = "application/pdf",
+        [".png"] = "image/png",
+        [".jpg"] = "image/jpeg",
+        [".jpeg"] = "image/jpeg"
+    };
 
     private static readonly object Esquema = new
     {
@@ -24,25 +33,35 @@ public sealed class ClasificadorFuncionesGemini
 
     public ClasificadorFuncionesGemini(ConfiguracionGemini config) => _cliente = new ClienteGemini(config);
 
-    public async Task<FuncionesEvaluadas> ClasificarAsync(IReadOnlyList<string> rutasPdf, CancellationToken ct = default)
+    /// <remarks>Llamar desde el hilo de la interfaz: los RTF se leen con WPF.</remarks>
+    public async Task<FuncionesEvaluadas> ClasificarAsync(IReadOnlyList<string> rutas, CancellationToken ct = default)
     {
-        if (rutasPdf.Count == 0)
-            throw new ArgumentException("Se necesita al menos un documento.", nameof(rutasPdf));
+        if (rutas.Count == 0)
+            throw new ArgumentException("Se necesita al menos un documento.", nameof(rutas));
 
-        // Los PDFs van primero y la instrucción al final: es el orden que mejor funciona con Gemini 3.
+        // Los documentos van primero y la instrucción al final: es el orden que mejor funciona con Gemini 3.
         var partes = new List<object>();
         long totalBytes = 0;
-        foreach (var ruta in rutasPdf)
+        foreach (var ruta in rutas)
         {
-            byte[] bytes = await File.ReadAllBytesAsync(ruta, ct);
-            totalBytes += bytes.Length;
-            partes.Add(ClienteGemini.Pdf(bytes));
+            if (TiposBinarios.TryGetValue(Path.GetExtension(ruta), out var mime))
+            {
+                byte[] bytes = await File.ReadAllBytesAsync(ruta, ct);
+                totalBytes += bytes.Length;
+                partes.Add(ClienteGemini.Archivo(bytes, mime));
+            }
+            else
+            {
+                string texto = LectorEvaluacion.LeerTexto(ruta);
+                totalBytes += texto.Length * 2L;
+                partes.Add(ClienteGemini.Texto($"Informe \"{Path.GetFileName(ruta)}\":\n{texto}"));
+            }
         }
 
         if (totalBytes > LimiteBytes)
             throw new InvalidOperationException("Los documentos superan el tamaño máximo permitido (20 MB en total).");
 
-        partes.Add(ClienteGemini.Texto(rutasPdf.Count == 1
+        partes.Add(ClienteGemini.Texto(rutas.Count == 1
             ? "Clasifica las funciones cognitivas del informe adjunto."
             : "Clasifica las funciones cognitivas de los dos informes adjuntos en una sola clasificación."));
 

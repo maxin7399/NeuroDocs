@@ -27,8 +27,10 @@ public sealed class ClienteGemini
 
     public static object Texto(string texto) => new { text = texto };
 
-    public static object Pdf(byte[] bytes) =>
-        new { inlineData = new { mimeType = "application/pdf", data = Convert.ToBase64String(bytes) } };
+    public static object Pdf(byte[] bytes) => Archivo(bytes, "application/pdf");
+
+    public static object Archivo(byte[] bytes, string mimeType) =>
+        new { inlineData = new { mimeType, data = Convert.ToBase64String(bytes) } };
 
     /// <summary>Envía las partes y deserializa la respuesta, que Gemini debe ajustar al esquema.</summary>
     public async Task<T> GenerarAsync<T>(string instrucciones, IReadOnlyList<object> partes, object esquema,

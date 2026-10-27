@@ -129,8 +129,12 @@
                                            Text="Estos documentos solo se envían a Gemini para sugerir conservados y alterados."/>
 
                                 <c:SelectorArchivo x:Name="Informe1Selector" Titulo="Información para la IA 1"
+                                                   Extensiones="pdf,docx,doc,rtf,txt,png,jpg,jpeg"
+                                                   Filtro="Informe (*.pdf;*.docx;*.rtf;*.txt;*.png;*.jpg)|*.pdf;*.docx;*.doc;*.rtf;*.txt;*.png;*.jpg;*.jpeg"
                                                    PermiteQuitar="True" RutaCambiada="Informe_RutaCambiada"/>
                                 <c:SelectorArchivo x:Name="Informe2Selector" Titulo="Información para la IA 2 (opcional)"
+                                                   Extensiones="pdf,docx,doc,rtf,txt,png,jpg,jpeg"
+                                                   Filtro="Informe (*.pdf;*.docx;*.rtf;*.txt;*.png;*.jpg)|*.pdf;*.docx;*.doc;*.rtf;*.txt;*.png;*.jpg;*.jpeg"
                                                    PermiteQuitar="True" RutaCambiada="Informe_RutaCambiada"/>
 
                                 <Button x:Name="SugerirIAButton" HorizontalAlignment="Left" Margin="10,8,0,0"
@@ -199,8 +203,8 @@
                                 <Button x:Name="RedactarIAButton" HorizontalAlignment="Left" Margin="10,12,0,0"
                                         IsEnabled="False" Click="RedactarIAButton_Click">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Style="{StaticResource IconoStyle}" Text="&#xE70F;" Margin="0,0,8,0"/>
-                                        <TextBlock Text="Redactar con IA"/>
+                                        <TextBlock Style="{StaticResource IconoStyle}" Text="&#xEA80;" Margin="0,0,8,0"/>
+                                        <TextBlock Text="Sugerir con IA"/>
                                     </StackPanel>
                                 </Button>
                             </StackPanel>

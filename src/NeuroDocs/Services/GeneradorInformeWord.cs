@@ -21,8 +21,8 @@ public sealed class GeneradorInformeWord
 
         LlenarIdentificacion(body, informe.Paciente);
 
-        LlenarCampo(body, ["Diagnóstico"], ResolverDiagnostico.Texto(informe.Paciente, informe.Orden), negrita: true);
-        LlenarCampo(body, ["CIE-10"], informe.Orden.Cie10Codigo ?? "", negrita: true);
+        LlenarCampo(body, ["Diagnóstico"], ResolverDiagnostico.Texto(informe.Paciente, informe.Orden));
+        LlenarCampo(body, ["CIE-10"], informe.Orden.Cie10Codigo ?? "");
         LlenarCampo(body, ["Tiempo de terapia solicitado"], FormatearTiempo(informe.Orden));
         LlenarCampo(body, ["Fecha elaboración de Informe", "Fecha de elaboración del informe"],
                     FormatoFecha.Larga(informe.FechaElaboracion));
