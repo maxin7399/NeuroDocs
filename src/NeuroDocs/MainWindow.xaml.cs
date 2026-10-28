@@ -24,7 +24,7 @@ public partial class MainWindow : Window
     private readonly GeneradorPlanWord _generador = new();
     private readonly ConvertidorPdfWord _convertidorPdf = new();
 
-    private (DatosPaciente Paciente, DatosOrden Orden, Firma? Firma)? _lectura;
+    private (DatosPaciente Paciente, DatosOrden Orden, Firma? Firma, string RutaExamen)? _lectura;
     private ResultadoWindow? _ventanaResultado;
     private int _versionLectura;   // descarta lecturas viejas si cambian los archivos mientras se leen
     private Action? _accionAviso;
@@ -54,7 +54,26 @@ public partial class MainWindow : Window
         // Un ECC nuevo es un paciente nuevo: los informes y las funciones del anterior no deben arrastrarse.
         if (sender == HistoriaSelector) LimpiarDatosDelPacienteAnterior();
 
+        // El segundo examen es opcional: al quitarlo vuelve a quedar solo el botón "Agregar".
+        if (sender == Historia2Selector && Historia2Selector.Ruta is null)
+        {
+            Historia2Selector.Visibility = Visibility.Collapsed;
+            AgregarExamenButton.Visibility = Visibility.Visible;
+        }
+
         await LeerDocumentosAsync();
+    }
+
+    private void AgregarExamenButton_Click(object sender, RoutedEventArgs e)
+    {
+        Historia2Selector.Visibility = Visibility.Visible;
+        AgregarExamenButton.Visibility = Visibility.Collapsed;
+    }
+
+    private void AgregarInformeButton_Click(object sender, RoutedEventArgs e)
+    {
+        Informe2Selector.Visibility = Visibility.Visible;
+        AgregarInformeButton.Visibility = Visibility.Collapsed;
     }
 
     private void LimpiarDatosDelPacienteAnterior()
@@ -89,16 +108,26 @@ public partial class MainWindow : Window
 
         MostrarResumenCargando();
 
+        string? rutaHistoria2 = Historia2Selector.Ruta;
+
         try
         {
             var lectura = await Task.Run(() =>
             {
-                var lineasHistoria = _extractor.ExtractLines(rutaHistoria);
+                var examenes = new[] { rutaHistoria, rutaHistoria2 }.OfType<string>()
+                    .Select(LeerExamen).ToList();
+                var combinados = CombinadorExamenes.Combinar(examenes[0].Examen, examenes.ElementAtOrDefault(1).Examen);
+
+                // Firma del examen principal; si no la trae, la del otro.
+                Firma? firma = null;
+                foreach (var (examen, lineas) in examenes.OrderByDescending(x => x.Examen == combinados.Principal))
+                {
+                    firma = _firmaExtractor.Extraer(examen.Ruta, lineas);
+                    if (firma is not null) break;
+                }
+
                 _lectorOrden.TryParse(_extractor.ExtractLines(rutaOrden), out var ordenLeida);
-                return (
-                    Paciente: _historiaParser.Parse(lineasHistoria),
-                    Orden: ordenLeida,
-                    Firma: _firmaExtractor.Extraer(rutaHistoria, lineasHistoria));
+                return (Combinados: combinados, Orden: ordenLeida, Firma: firma);
             });
 
             if (version != _versionLectura) return;
@@ -110,11 +139,13 @@ public partial class MainWindow : Window
                 return;
             }
 
-            _lectura = (lectura.Paciente, orden, lectura.Firma);
-            MostrarResumen(lectura.Paciente, orden);
+            var paciente = lectura.Combinados.Paciente;
+            _lectura = (paciente, orden, lectura.Firma, lectura.Combinados.Principal.Ruta);
+            MostrarResumen(paciente, orden);
             ActualizarBotonesGenerar();
 
-            var advertencias = ValidadorDocumentos.Validar(lectura.Paciente, orden).ToList();
+            var advertencias = lectura.Combinados.Avisos.ToList();
+            advertencias.AddRange(ValidadorDocumentos.Validar(paciente, orden));
             if (lectura.Firma is null)
                 advertencias.Add("No se encontró la firma del profesional en la historia clínica.");
 
@@ -129,6 +160,13 @@ public partial class MainWindow : Window
             MostrarAviso(TipoAviso.Error, $"No se pudieron leer los documentos: {ex.Message}");
         }
     }
+    private (ExamenLeido Examen, IReadOnlyList<PdfLine> Lineas) LeerExamen(string ruta)
+    {
+        var lineas = _extractor.ExtractLines(ruta);
+        int longitud = lineas.Sum(l => l.Text.Length);
+        return (new ExamenLeido(ruta, _historiaParser.Parse(lineas), longitud), lineas);
+    }
+
     private void ActualizarBotonesGenerar()
     {
         bool listo = _lectura is not null;
@@ -203,8 +241,16 @@ public partial class MainWindow : Window
     private List<string> RutasInformes =>
         new[] { Informe1Selector.Ruta, Informe2Selector.Ruta }.OfType<string>().ToList();
 
-    private void Informe_RutaCambiada(object? sender, EventArgs e) =>
+    private void Informe_RutaCambiada(object? sender, EventArgs e)
+    {
+        if (sender == Informe2Selector && Informe2Selector.Ruta is null)
+        {
+            Informe2Selector.Visibility = Visibility.Collapsed;
+            AgregarInformeButton.Visibility = Visibility.Visible;
+        }
+
         SugerirIAButton.IsEnabled = RutasInformes.Count > 0;
+    }
 
     private async void SugerirIAButton_Click(object sender, RoutedEventArgs e)
     {
@@ -231,7 +277,7 @@ public partial class MainWindow : Window
             ConservadosTextBox.Text = string.Join(Environment.NewLine, funciones.Conservados);
             AlteradosTextBox.Text = string.Join(Environment.NewLine, funciones.Alterados);
 
-            MostrarAviso(TipoAviso.Exito, "Sugerencia lista. Revisa ambas listas antes de generar el plan.");
+            MostrarAviso(TipoAviso.Advertencia, "Sugerencia lista. Revisa ambas listas antes de generar el plan.");
         }
         catch (Exception ex) 
         { 
@@ -262,7 +308,8 @@ public partial class MainWindow : Window
 
     private async void GenerarButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_lectura is not { } lectura || HistoriaSelector.Ruta is not { } rutaHistoria) return;
+        if (_lectura is not { } lectura) return;
+        string rutaHistoria = lectura.RutaExamen;
         if (!ExistePlantilla(RutaPlantilla)) return;
 
         var plan = ConstruirPlan(lectura.Paciente, lectura.Orden, lectura.Firma);
@@ -367,7 +414,7 @@ public partial class MainWindow : Window
             ? delEcc
             : Path.GetFileNameWithoutExtension(rutaHistoria);
         if (nombre.EndsWith("ECC", StringComparison.OrdinalIgnoreCase)) nombre = nombre[..^3];
-        nombre = string.Concat(nombre.Where(c => !char.IsWhiteSpace(c)));
+        nombre = string.Concat(nombre.Where(char.IsLetterOrDigit)); // sin espacios, puntos ni otros signos
 
         return $"{nombre}{tipoDocumento}{FormatoFecha.NombreMes(emision.Month)}{emision.Year}";
     }
@@ -434,6 +481,7 @@ public partial class MainWindow : Window
         // Al vaciar los selectores se disparan sus eventos: se ocultan el resumen y los avisos,
         // se desactiva Generar y se cierra la ventana de datos.
         HistoriaSelector.Limpiar();
+        Historia2Selector.Limpiar();
         OrdenSelector.Limpiar();
         LimpiarDatosDelPacienteAnterior(); // informes para la IA + listas
         SeleccionarMesActual();
@@ -555,7 +603,7 @@ public partial class MainWindow : Window
             PlanTextBox.Text = texto.PlanActual;
             _tipoRedactado = tipo;
 
-            MostrarAviso(TipoAviso.Exito, "Informe redactado. Revisa la Condición actual y el Plan actual antes de generar.");
+            MostrarAviso(TipoAviso.Advertencia, "Informe redactado. Revisa la Condición actual y el Plan actual antes de generar.");
         }
         catch (Exception ex)
         {
@@ -570,7 +618,8 @@ public partial class MainWindow : Window
 
     private async void GenerarInformeButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_lectura is not { } lectura || HistoriaSelector.Ruta is not { } rutaHistoria) return;
+        if (_lectura is not { } lectura) return;
+        string rutaHistoria = lectura.RutaExamen;
         if (!ExistePlantilla(RutaPlantillaInforme)) return;
 
         string condicion = CondicionTextBox.Text.Trim();

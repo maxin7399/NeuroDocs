@@ -38,6 +38,18 @@ public partial class SelectorArchivo : UserControl
 
     public bool PermiteQuitar { get; set; }
 
+    private bool _permiteOcultar;
+
+    /// <summary>
+    /// Selector adicional: la X se muestra también sin archivo. Al pulsarla se vacía y dispara
+    /// <see cref="RutaCambiada"/> con ruta nula, que la ventana usa para ocultarlo.
+    /// </summary>
+    public bool PermiteOcultar
+    {
+        get => _permiteOcultar;
+        set { _permiteOcultar = value; ActualizarVista(); }
+    }
+
     /// <summary>Filtro del diálogo de selección.</summary>
     public string Filtro { get; set; } = "Archivos PDF (*.pdf)|*.pdf";
 
@@ -72,7 +84,8 @@ public partial class SelectorArchivo : UserControl
             ? Path.GetFileName(_ruta)
             : _extensiones == "pdf" ? "Ningún archivo · arrastra un PDF aquí" : "Ningún archivo · arrastra el archivo aquí";
         ArchivoText.ToolTip = _ruta;
-        QuitarButton.Visibility = hayArchivo && PermiteQuitar ? Visibility.Visible : Visibility.Collapsed;
+        QuitarButton.Visibility = (hayArchivo && PermiteQuitar) || _permiteOcultar ? Visibility.Visible : Visibility.Collapsed;
+        QuitarButton.ToolTip = _permiteOcultar ? "Quitar y ocultar" : "Quitar archivo";
     }
 
     private void SeleccionarButton_Click(object sender, RoutedEventArgs e)

@@ -71,6 +71,16 @@
 
                             <c:SelectorArchivo x:Name="HistoriaSelector" Titulo="Examen (ECC, AD4, AD5)"
                                                RutaCambiada="DocumentoPaciente_RutaCambiada"/>
+                            <Button x:Name="AgregarExamenButton" HorizontalAlignment="Right" Margin="0,-4,10,4"
+                                    ToolTip="Agregar otro examen del mismo paciente" Click="AgregarExamenButton_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource IconoStyle}" FontSize="12" Text="&#xE710;" Margin="0,0,6,0"/>
+                                    <TextBlock Text="Agregar"/>
+                                </StackPanel>
+                            </Button>
+                            <c:SelectorArchivo x:Name="Historia2Selector" Titulo="Segundo examen (opcional)"
+                                               PermiteQuitar="True" PermiteOcultar="True" Visibility="Collapsed"
+                                               RutaCambiada="DocumentoPaciente_RutaCambiada"/>
                             <c:SelectorArchivo x:Name="OrdenSelector" Titulo="Orden (servicio o cobro)"
                                                RutaCambiada="DocumentoPaciente_RutaCambiada"/>
 
@@ -132,7 +142,15 @@
                                                    Extensiones="pdf,docx,doc,rtf,txt,png,jpg,jpeg"
                                                    Filtro="Informe (*.pdf;*.docx;*.rtf;*.txt;*.png;*.jpg)|*.pdf;*.docx;*.doc;*.rtf;*.txt;*.png;*.jpg;*.jpeg"
                                                    PermiteQuitar="True" RutaCambiada="Informe_RutaCambiada"/>
+                                <Button x:Name="AgregarInformeButton" HorizontalAlignment="Right" Margin="0,-4,10,4"
+                                        ToolTip="Agregar otro documento para la IA" Click="AgregarInformeButton_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Style="{StaticResource IconoStyle}" FontSize="12" Text="&#xE710;" Margin="0,0,6,0"/>
+                                        <TextBlock Text="Agregar"/>
+                                    </StackPanel>
+                                </Button>
                                 <c:SelectorArchivo x:Name="Informe2Selector" Titulo="Información para la IA 2 (opcional)"
+                                                   PermiteOcultar="True" Visibility="Collapsed"
                                                    Extensiones="pdf,docx,doc,rtf,txt,png,jpg,jpeg"
                                                    Filtro="Informe (*.pdf;*.docx;*.rtf;*.txt;*.png;*.jpg)|*.pdf;*.docx;*.doc;*.rtf;*.txt;*.png;*.jpg;*.jpeg"
                                                    PermiteQuitar="True" RutaCambiada="Informe_RutaCambiada"/>
