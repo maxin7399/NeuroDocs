@@ -48,6 +48,7 @@ public partial class MainWindow : Window
         ActualizarConteos();
         ActualizarConteosInforme();
         ActualizarPasos();
+        InicializarBloqueo();
     }
 
     // ───────────── Paso 1: documentos del paciente ─────────────
@@ -530,8 +531,11 @@ public partial class MainWindow : Window
 
     // ───────────── Ventanas auxiliares ─────────────
 
-    private void ConfiguracionButton_Click(object sender, RoutedEventArgs e) =>
+    private void ConfiguracionButton_Click(object sender, RoutedEventArgs e)
+    {
         new ConfiguracionWindow { Owner = this }.ShowDialog();
+        RecargarAjustesBloqueo();
+    }
     private void LimpiarButton_Click(object sender, RoutedEventArgs e)
     {
         bool hayListas = !string.IsNullOrWhiteSpace(ConservadosTextBox.Text)

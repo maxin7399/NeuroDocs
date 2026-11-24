@@ -13,6 +13,7 @@ A partir del examen del paciente (historia clínica ECC, AD4 o AD5) y la orden e
 - **Informe de evolución**: mensual o final, con la condición actual y el plan actual redactados por la IA a partir de las evoluciones (RTF, Word, PDF o TXT).
 - **Segundo examen opcional**: si hay dos exámenes, usa el más completo y avisa si los datos de identificación no coinciden.
 - **Avisos de revisión**: documento equivocado, documentos que no coinciden, tiempo de terapia por defecto (editable en el mismo aviso) y sugerencias de la IA por revisar.
+- **Contraseña de acceso**: se crea la primera vez y se pide al abrir la app, al pulsar **Bloquear** (o `Ctrl+L`) y tras un tiempo sin uso (15 minutos por defecto, configurable).
 - **Edición antes de generar**: las listas y los textos sugeridos siempre se pueden corregir a mano.
 
 ## Requisitos

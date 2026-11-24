@@ -26,9 +26,10 @@ public partial class MainWindow
             return;
         }
 
-        BarraLogo.Opacity = 0;
+        Destino.Opacity = 0;
         var elementos = ElementosDeEntrada().ToList();
         foreach (var el in elementos) el.Opacity = 0;
+        if (_bloqueada) _entradaPendiente = elementos; // entran al desbloquear
 
         // 1) Se enciende (≈0,45 s): aparece, crece con un pequeño rebote y gana brillo.
         Animacion(IntroLogo, OpacityProperty, 0, 1, 0, 300);
@@ -40,12 +41,16 @@ public partial class MainWindow
         IntroBrillo.BeginAnimation(DropShadowEffect.BlurRadiusProperty, Crear(0, 46, 0, 450, Suave));
     }
 
-    /// <summary>2) Viaja al logo de la barra mientras se desvanece el fondo; 3) el contenido entra escalonado.</summary>
+    /// <summary>Adonde viaja el logo de entrada: a la barra, o a la tarjeta de contraseña si la app está bloqueada.</summary>
+    private Border Destino => _bloqueada ? BloqueoLogo : BarraLogo;
+
+    /// <summary>2) Viaja a su destino mientras se desvanece el fondo; 3) el contenido entra escalonado.</summary>
     private void ViajarALaBarra(List<FrameworkElement> elementos)
     {
+        var destino = Destino;
         var centroIntro = IntroLogo.TranslatePoint(new Point(IntroLogo.ActualWidth / 2, IntroLogo.ActualHeight / 2), IntroOverlay);
-        var centroBarra = BarraLogo.TranslatePoint(new Point(BarraLogo.ActualWidth / 2, BarraLogo.ActualHeight / 2), IntroOverlay);
-        double escalaFinal = BarraLogo.ActualWidth / IntroLogo.ActualWidth;
+        var centroBarra = destino.TranslatePoint(new Point(destino.ActualWidth / 2, destino.ActualHeight / 2), IntroOverlay);
+        double escalaFinal = destino.ActualWidth / IntroLogo.ActualWidth;
         var viaje = new CubicEase { EasingMode = EasingMode.EaseInOut };
 
         IntroMovimiento.BeginAnimation(TranslateTransform.XProperty, Crear(0, centroBarra.X - centroIntro.X, 60, 420, viaje));
@@ -58,9 +63,10 @@ public partial class MainWindow
         // Al llegar, el logo real toma su lugar.
         var fin = Crear(1, 0, 480, 120, null);
         fin.Completed += (_, _) => IntroOverlay.Visibility = Visibility.Collapsed;
-        Animacion(BarraLogo, OpacityProperty, 0, 1, 440, 120);
+        Animacion(destino, OpacityProperty, 0, 1, 440, 120);
         IntroLogo.BeginAnimation(OpacityProperty, fin);
 
+        if (_entradaPendiente is not null) return; // bloqueada: el contenido entra al desbloquear
         int i = 0;
         foreach (var el in elementos) Entrar(el, 170 + i++ * 70);
     }

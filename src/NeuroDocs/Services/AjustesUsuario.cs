@@ -19,11 +19,32 @@ public sealed class AjustesUsuario
     // Capa adicional: separa estos datos de los de otras aplicaciones que también usen DPAPI.
     private static readonly byte[] Entropia = Encoding.UTF8.GetBytes("NeuroDocs.Gemini.v1");
 
+    public const int MinutosBloqueoPorDefecto = 15;
+
     public string? Modelo { get; set; }
     public string? ApiKeyCifrada { get; set; }
 
+    /// <summary>Huella y sal de la contraseña de acceso (ver <see cref="ContrasenaAcceso"/>).</summary>
+    public string? ContrasenaHuella { get; set; }
+    public string? ContrasenaSal { get; set; }
+
+    /// <summary>Minutos sin uso antes de bloquear la app; 0 = nunca. Sin valor = 15.</summary>
+    public int? MinutosBloqueo { get; set; }
+
     [JsonIgnore]
     public bool TieneApiKey => !string.IsNullOrEmpty(ApiKeyCifrada);
+
+    [JsonIgnore]
+    public bool TieneContrasena => !string.IsNullOrEmpty(ContrasenaHuella) && !string.IsNullOrEmpty(ContrasenaSal);
+
+    [JsonIgnore]
+    public int MinutosBloqueoEfectivos => MinutosBloqueo ?? MinutosBloqueoPorDefecto;
+
+    public void EstablecerContrasena(string contrasena) =>
+        (ContrasenaHuella, ContrasenaSal) = ContrasenaAcceso.Crear(contrasena);
+
+    public bool VerificarContrasena(string contrasena) =>
+        TieneContrasena && ContrasenaAcceso.Verificar(contrasena, ContrasenaHuella!, ContrasenaSal!);
 
     public static AjustesUsuario Cargar()
     {

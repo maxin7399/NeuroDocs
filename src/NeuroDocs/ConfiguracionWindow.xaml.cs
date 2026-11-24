@@ -20,6 +20,29 @@ public partial class ConfiguracionWindow : Window
         EstadoClaveText.Text = _ajustes.TieneApiKey
             ? "Hay una clave guardada. Deja el campo vacío para conservarla."
             : "No hay ninguna clave guardada.";
+
+        var opciones = new List<(int Minutos, string Texto)> { (0, "Nunca"), (5, "5 minutos"), (10, "10 minutos"),
+            (15, "15 minutos"), (30, "30 minutos"), (60, "1 hora") };
+        int actuales = _ajustes.MinutosBloqueoEfectivos;
+        if (opciones.All(o => o.Minutos != actuales)) opciones.Add((actuales, $"{actuales} minutos")); // valor editado a mano
+        MinutosBloqueoCombo.ItemsSource = opciones.OrderBy(o => o.Minutos == 0 ? int.MaxValue : o.Minutos)
+                                                  .Select(o => new { o.Minutos, o.Texto }).ToList();
+        MinutosBloqueoCombo.SelectedValue = actuales;
+    }
+
+    /// <summary>Valida el cambio de contraseña; null si no se pidió cambiarla o si es válido.</summary>
+    private string? ErrorCambioContrasena()
+    {
+        string nueva = ContrasenaNuevaBox.Password;
+        if (nueva.Length == 0 && ContrasenaConfirmarBox.Password.Length == 0) return null;
+
+        if (_ajustes.TieneContrasena && !_ajustes.VerificarContrasena(ContrasenaActualBox.Password))
+            return "La contraseña actual no es correcta.";
+        if (nueva.Length < ContrasenaAcceso.LongitudMinima)
+            return $"La nueva contraseña debe tener al menos {ContrasenaAcceso.LongitudMinima} caracteres.";
+        if (nueva != ContrasenaConfirmarBox.Password)
+            return "Las contraseñas nuevas no coinciden.";
+        return null;
     }
 
     private string ModeloIngresado => ModeloCombo.Text.Trim();
@@ -66,11 +89,20 @@ public partial class ConfiguracionWindow : Window
             return;
         }
 
+        if (ErrorCambioContrasena() is { } error)
+        {
+            ContrasenaErrorText.Text = error;
+            ContrasenaErrorText.Visibility = Visibility.Visible;
+            return;
+        }
+
         if (!string.IsNullOrWhiteSpace(ApiKeyBox.Password))
         {
             _ajustes.EstablecerApiKey(ApiKeyBox.Password.Trim());
         }
         _ajustes.Modelo = ModeloIngresado;
+        if (MinutosBloqueoCombo.SelectedValue is int minutos) _ajustes.MinutosBloqueo = minutos;
+        if (ContrasenaNuevaBox.Password.Length > 0) _ajustes.EstablecerContrasena(ContrasenaNuevaBox.Password);
 
         try
         {

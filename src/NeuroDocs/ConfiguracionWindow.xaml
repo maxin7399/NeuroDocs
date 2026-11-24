@@ -1,12 +1,22 @@
 ﻿<Window x:Class="NeuroDocs.ConfiguracionWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Configuración" Width="540" SizeToContent="Height"
+        Title="Configuración" Width="900" SizeToContent="Height"
         ResizeMode="NoResize" WindowStartupLocation="CenterOwner"
         FontFamily="{StaticResource FuenteApp}" FontSize="13.5"
         Background="{StaticResource FondoVentanaBrush}"
         Foreground="{StaticResource TextoPrincipalBrush}"
         Icon="/Assets/NeuroDocs.ico">
+
+    <Window.Resources>
+        <Style x:Key="TarjetaConfigStyle" TargetType="Border">
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Background" Value="{StaticResource FondoTarjetaBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BordeTarjetaBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+    </Window.Resources>
 
     <StackPanel>
         <!-- Encabezado morado como la barra de la ventana principal -->
@@ -14,32 +24,66 @@
             <StackPanel Orientation="Horizontal">
                 <TextBlock Style="{StaticResource IconoStyle}" Text="&#xE713;" FontSize="18" Margin="0,0,12,0"
                            Foreground="{StaticResource BarraTextoBrush}"/>
-                <TextBlock Text="Configuración de Gemini" FontSize="16" FontWeight="SemiBold"
+                <TextBlock Text="Configuración" FontSize="16" FontWeight="SemiBold"
                            Foreground="{StaticResource BarraTextoBrush}" VerticalAlignment="Center"/>
             </StackPanel>
         </Border>
 
-        <Border Margin="18" Padding="20" CornerRadius="16" Background="{StaticResource FondoTarjetaBrush}"
-                BorderBrush="{StaticResource BordeTarjetaBrush}" BorderThickness="1">
-            <StackPanel>
-                <TextBlock Text="Clave de API de Gemini" FontSize="14" FontWeight="SemiBold"/>
-                <PasswordBox x:Name="ApiKeyBox" Margin="0,8,0,4" VerticalContentAlignment="Center"/>
-                <TextBlock x:Name="EstadoClaveText" Style="{StaticResource TextoSecundarioStyle}" TextWrapping="Wrap"/>
+        <Grid Margin="18">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="18"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-                <TextBlock Text="Modelo" FontSize="14" FontWeight="SemiBold" Margin="0,18,0,0"/>
-                <ComboBox x:Name="ModeloCombo" IsEditable="True" Margin="0,8,0,4" HorizontalAlignment="Stretch"
-                          VerticalContentAlignment="Center"/>
-                <TextBlock Style="{StaticResource TextoSecundarioStyle}" TextWrapping="Wrap"
-                           Text="Si un modelo deja de estar disponible, escribe el nombre del nuevo."/>
+            <!-- Gemini -->
+            <Border Style="{StaticResource TarjetaConfigStyle}">
+                <StackPanel>
+                    <TextBlock Text="Gemini" FontSize="15" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                    <TextBlock Text="Clave de API" FontWeight="SemiBold"/>
+                    <PasswordBox x:Name="ApiKeyBox" Margin="0,8,0,4" VerticalContentAlignment="Center"/>
+                    <TextBlock x:Name="EstadoClaveText" Style="{StaticResource TextoSecundarioStyle}" TextWrapping="Wrap"/>
 
-                <TextBlock x:Name="ResultadoPruebaText" TextWrapping="Wrap" Margin="0,16,0,0"/>
+                    <TextBlock Text="Modelo" FontWeight="SemiBold" Margin="0,16,0,0"/>
+                    <ComboBox x:Name="ModeloCombo" IsEditable="True" Margin="0,8,0,4" HorizontalAlignment="Stretch"
+                              VerticalContentAlignment="Center"/>
+                    <TextBlock Style="{StaticResource TextoSecundarioStyle}" TextWrapping="Wrap"
+                               Text="Si un modelo deja de estar disponible, escribe el nombre del nuevo."/>
 
-                <TextBlock x:Name="VersionText" Style="{StaticResource TextoSecundarioStyle}" Margin="0,16,0,0"/>
-            </StackPanel>
-        </Border>
+                    <Button x:Name="ProbarButton" Content="Probar conexión" HorizontalAlignment="Left" Margin="0,16,0,0"
+                            Click="ProbarButton_Click"/>
+                    <TextBlock x:Name="ResultadoPruebaText" TextWrapping="Wrap" Margin="0,10,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Seguridad -->
+            <Border Grid.Column="2" Style="{StaticResource TarjetaConfigStyle}">
+                <StackPanel>
+                    <TextBlock Text="Seguridad" FontSize="15" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                    <TextBlock Text="Bloquear tras un tiempo sin uso" FontWeight="SemiBold"/>
+                    <ComboBox x:Name="MinutosBloqueoCombo" Margin="0,8,0,4" HorizontalAlignment="Left" Width="180"
+                              DisplayMemberPath="Texto" SelectedValuePath="Minutos"/>
+                    <TextBlock Style="{StaticResource TextoSecundarioStyle}" TextWrapping="Wrap"
+                               Text="Pide la contraseña si nadie usa la app durante ese tiempo."/>
+
+                    <TextBlock Text="Cambiar contraseña" FontWeight="SemiBold" Margin="0,16,0,0"/>
+                    <TextBlock Style="{StaticResource TextoSecundarioStyle}" TextWrapping="Wrap" Margin="0,2,0,0"
+                               Text="Déjalo vacío para conservar la actual."/>
+                    <TextBlock Text="Contraseña actual" Margin="0,10,0,4"/>
+                    <PasswordBox x:Name="ContrasenaActualBox"/>
+                    <TextBlock Text="Nueva contraseña" Margin="0,10,0,4"/>
+                    <PasswordBox x:Name="ContrasenaNuevaBox"/>
+                    <TextBlock Text="Repite la nueva contraseña" Margin="0,10,0,4"/>
+                    <PasswordBox x:Name="ContrasenaConfirmarBox"/>
+                    <TextBlock x:Name="ContrasenaErrorText" Foreground="{StaticResource AvisoErrorIconoBrush}"
+                               TextWrapping="Wrap" Margin="0,10,0,0" Visibility="Collapsed"/>
+                </StackPanel>
+            </Border>
+        </Grid>
 
         <DockPanel Margin="18,0,18,18" LastChildFill="False">
-            <Button x:Name="ProbarButton" Content="Probar conexión" DockPanel.Dock="Left" Click="ProbarButton_Click"/>
+            <TextBlock x:Name="VersionText" DockPanel.Dock="Left" Style="{StaticResource TextoSecundarioStyle}"
+                       VerticalAlignment="Center"/>
             <Button Content="Cancelar" DockPanel.Dock="Right" Margin="10,0,0,0" IsCancel="True"/>
             <Button Content="Guardar" DockPanel.Dock="Right" Style="{StaticResource BotonPrincipalStyle}"
                     IsDefault="True" Click="GuardarButton_Click"/>

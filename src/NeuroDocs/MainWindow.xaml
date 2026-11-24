@@ -8,7 +8,7 @@
         FontFamily="{StaticResource FuenteApp}" FontSize="13.5"
         Background="{StaticResource FondoVentanaBrush}"
         Foreground="{StaticResource TextoPrincipalBrush}"
-        Loaded="Window_Loaded">
+        Loaded="Window_Loaded" PreviewKeyDown="Window_PreviewKeyDown">
 
     <Window.Resources>
         <!-- Píldora (radio = mitad de la altura) para los pasos y el selector de modo -->
@@ -81,7 +81,7 @@
                     </Border>
                     <StackPanel DockPanel.Dock="Left" Margin="12,0,0,0" VerticalAlignment="Center">
                         <TextBlock Text="NeuroDocs" FontSize="17" FontWeight="SemiBold" Foreground="{StaticResource BarraTextoBrush}"/>
-                        <TextBlock Text="Software de apoyo a la rehabilitación neuropsicológica" FontSize="11"
+                        <TextBlock Text="Software de apoyo para la rehabilitación neuropsicológica" FontSize="11"
                                    Foreground="{StaticResource BarraTextoSuaveBrush}"/>
                     </StackPanel>
 
@@ -109,6 +109,13 @@
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Style="{StaticResource IconoStyle}" Text="&#xE894;" Margin="0,0,8,0"/>
                             <TextBlock Text="Limpiar"/>
+                        </StackPanel>
+                    </Button>
+                    <Button DockPanel.Dock="Right" Style="{StaticResource BotonBarraStyle}" Click="BloquearButton_Click"
+                            ToolTip="Bloquear NeuroDocs (Ctrl+L)" Margin="0,0,4,0" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource IconoStyle}" Text="&#xE72E;" Margin="0,0,8,0"/>
+                            <TextBlock Text="Bloquear"/>
                         </StackPanel>
                     </Button>
                     <TextBlock x:Name="VersionText" DockPanel.Dock="Right" Margin="0,0,16,0" VerticalAlignment="Center"
@@ -537,6 +544,66 @@
                     </Button>
                 </Grid>
             </Border>
+        </Grid>
+
+        <!-- ───── Bloqueo: pide la contraseña al abrir, al pulsar "Bloquear" y tras un rato sin uso.
+             Tapa toda la ventana sin borrar nada de lo cargado. ───── -->
+        <Grid x:Name="BloqueoOverlay" Background="{StaticResource FondoVentanaBrush}">
+            <Rectangle IsHitTestVisible="False">
+                <Rectangle.Fill>
+                    <RadialGradientBrush Center="0.5,0.42" GradientOrigin="0.5,0.42" RadiusX="0.45" RadiusY="0.6">
+                        <GradientStop Color="#40C77DFF" Offset="0"/>
+                        <GradientStop Color="#00C77DFF" Offset="1"/>
+                    </RadialGradientBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+            <c:Tarjeta x:Name="BloqueoTarjeta" Width="380" Padding="30,28" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <c:Tarjeta.RenderTransform>
+                    <TranslateTransform x:Name="BloqueoSacudida"/>
+                </c:Tarjeta.RenderTransform>
+                <StackPanel>
+                    <Border x:Name="BloqueoLogo" Width="72" Height="72" CornerRadius="20" HorizontalAlignment="Center"
+                            Background="{StaticResource BarraFondoBrush}">
+                        <Border.Effect>
+                            <DropShadowEffect Color="{StaticResource BrilloColor}" BlurRadius="24" ShadowDepth="0" Opacity="0.7"/>
+                        </Border.Effect>
+                        <Viewbox Width="46" Height="46">
+                            <Canvas Width="74" Height="86">
+                                <Path Data="M11,75 L11,11 L63,75 L63,11" Stroke="{StaticResource BarraTextoBrush}" StrokeThickness="7"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                                <Path Fill="{StaticResource BarraTextoBrush}"
+                                      Data="M0,75 A11,11 0 1 0 22,75 A11,11 0 1 0 0,75 M0,11 A11,11 0 1 0 22,11 A11,11 0 1 0 0,11 M52,75 A11,11 0 1 0 74,75 A11,11 0 1 0 52,75 M52,11 A11,11 0 1 0 74,11 A11,11 0 1 0 52,11"/>
+                                <Path Fill="{StaticResource BarraFondoBrush}"
+                                      Data="M6.5,75 A4.5,4.5 0 1 0 15.5,75 A4.5,4.5 0 1 0 6.5,75 M6.5,11 A4.5,4.5 0 1 0 15.5,11 A4.5,4.5 0 1 0 6.5,11 M58.5,75 A4.5,4.5 0 1 0 67.5,75 A4.5,4.5 0 1 0 58.5,75 M58.5,11 A4.5,4.5 0 1 0 67.5,11 A4.5,4.5 0 1 0 58.5,11"/>
+                            </Canvas>
+                        </Viewbox>
+                    </Border>
+                    <TextBlock x:Name="BloqueoTituloText" FontSize="18" FontWeight="SemiBold" Margin="0,18,0,0"
+                               HorizontalAlignment="Center" TextAlignment="Center"/>
+                    <TextBlock x:Name="BloqueoSubtituloText" Style="{StaticResource TextoSecundarioStyle}" Margin="0,6,0,18"
+                               HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
+
+                    <TextBlock x:Name="ContrasenaEtiqueta" Text="Contraseña" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                    <PasswordBox x:Name="ContrasenaBox" KeyDown="ContrasenaBox_KeyDown"
+                                 AutomationProperties.Name="Contraseña"/>
+                    <StackPanel x:Name="ConfirmarPanel" Visibility="Collapsed">
+                        <TextBlock Text="Repite la contraseña" FontWeight="SemiBold" Margin="0,12,0,6"/>
+                        <PasswordBox x:Name="ConfirmarBox" KeyDown="ContrasenaBox_KeyDown"
+                                     AutomationProperties.Name="Repite la contraseña"/>
+                    </StackPanel>
+
+                    <TextBlock x:Name="BloqueoErrorText" Foreground="{StaticResource AvisoErrorIconoBrush}" TextWrapping="Wrap"
+                               Margin="0,10,0,0" Visibility="Collapsed"/>
+
+                    <Button x:Name="EntrarButton" Style="{StaticResource BotonPrincipalStyle}" Margin="0,20,0,0"
+                            HorizontalAlignment="Stretch" Click="EntrarButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource IconoStyle}" FontSize="14" Text="&#xE785;" Margin="0,0,8,0"/>
+                            <TextBlock x:Name="EntrarTexto" Text="Entrar"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </c:Tarjeta>
         </Grid>
 
         <!-- ───── Animación de entrada: el logo se enciende y viaja a la barra ───── -->
