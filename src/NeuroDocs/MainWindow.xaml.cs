@@ -43,8 +43,11 @@ public partial class MainWindow : Window
         VersionText.Text = $"v{InfoAplicacion.Version}";
         VersionText.ToolTip = InfoAplicacion.VersionCompleta;
         InicializarEmisionPlan();
+        SesionesTerapiaCombo.ItemsSource = Enumerable.Range(1, 20).ToList();
+        MesesTerapiaCombo.ItemsSource = Enumerable.Range(1, 12).ToList();
         ActualizarConteos();
         ActualizarConteosInforme();
+        ActualizarPasos();
     }
 
     // ───────────── Paso 1: documentos del paciente ─────────────
@@ -151,6 +154,8 @@ public partial class MainWindow : Window
 
             if (advertencias.Count > 0)
                 MostrarAviso(TipoAviso.Advertencia, string.Join(Environment.NewLine, advertencias));
+            if (orden.TiempoPorDefecto)
+                MostrarEditorTiempo(orden);
         }
         catch (Exception ex)
         {
@@ -172,24 +177,35 @@ public partial class MainWindow : Window
         bool listo = _lectura is not null;
         GenerarButton.IsEnabled = listo;
         GenerarInformeButton.IsEnabled = listo;
+        ActualizarPasos();
     }
-    private void ModoTabs_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-    {
-        // Solo cambios de pestaña, no selecciones de controles internos que burbujean hasta aquí.
-        if (e.Source != ModoTabs || PlanIzquierda is null || InformeIzquierda is null) return;
 
-        bool informe = ModoTabs.SelectedIndex == 1;
-        PlanIzquierda.Visibility = informe ? Visibility.Collapsed : Visibility.Visible;
-        InformeIzquierda.Visibility = informe ? Visibility.Visible : Visibility.Collapsed;
+    /// <summary>El modo (plan o informe) se elige en la barra superior y cambia la tarjeta de los pasos 2 y 3.</summary>
+    private void Modo_Checked(object sender, RoutedEventArgs e)
+    {
+        if (TarjetaPlan is null || TarjetaInforme is null) return; // durante la construcción de la ventana
+
+        bool informe = InformeModoRadio.IsChecked == true;
+        TarjetaPlan.Visibility = informe ? Visibility.Collapsed : Visibility.Visible;
+        TarjetaInforme.Visibility = informe ? Visibility.Visible : Visibility.Collapsed;
+        Aparecer(informe ? TarjetaInforme : TarjetaPlan);
+        ActualizarPasos();
     }
 
     private void MostrarResumenCargando()
     {
         ResumenNombreText.Text = "Leyendo documentos…";
         ResumenDetalleText.Text = "";
+        ResumenAvatar.Visibility = Visibility.Collapsed;
+        LecturaProgress.Visibility = Visibility.Visible;
         VerDatosButton.Visibility = Visibility.Collapsed;
         ResumenBorder.Visibility = Visibility.Visible;
     }
+
+    /// <summary>"Laura Pérez Ríos" → "LP".</summary>
+    private static string Iniciales(string nombre) =>
+        string.Concat(nombre.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                            .Where(p => char.IsLetter(p[0])).Take(2).Select(p => char.ToUpper(p[0])));
 
     private void MostrarResumen(DatosPaciente paciente, DatosOrden orden)
     {
@@ -197,16 +213,63 @@ public partial class MainWindow : Window
             ? nombre
             : "(nombre no encontrado)";
 
-        // "C.C. 8601373, Repelón – Atlántico." → "C.C. 8601373"
+        ResumenDetalleText.Text = DetalleResumen(paciente, orden);
+        ResumenIniciales.Text = nombre is null ? "?" : Iniciales(nombre);
+        ResumenAvatar.Visibility = Visibility.Visible;
+        LecturaProgress.Visibility = Visibility.Collapsed;
+        VerDatosButton.Visibility = Visibility.Visible;
+        Aparecer(ResumenBorder);
+    }
+
+    private static string DetalleResumen(DatosPaciente paciente, DatosOrden orden)
+    {
+        // "C.C. 1234567, Ciudad Ejemplo – Atlántico." → "C.C. 1234567"
         string documento = paciente.Campos.TryGetValue(CamposPaciente.Identificacion, out var id)
             ? id.Split(',')[0].Trim()
             : "Documento no encontrado";
 
-        string terapia = orden is { SesionesMensuales: { } s, Meses: { } m } ? $"{s} sesiones × {m} meses" : "Terapia no encontrada";
+        string terapia = orden is { SesionesMensuales: { } s, Meses: { } m }
+            ? $"{s} {(s == 1 ? "sesión" : "sesiones")} × {m} {(m == 1 ? "mes" : "meses")}"
+            : "Terapia no encontrada";
 
-        ResumenDetalleText.Text = $"{documento} · CIE-10 {orden.Cie10Codigo ?? "—"} · {terapia}";
-        VerDatosButton.Visibility = Visibility.Visible;
+        return $"{documento} · CIE-10 {orden.Cie10Codigo ?? "—"} · {terapia}";
     }
+
+    // ───────────── Tiempo de terapia por defecto ─────────────
+
+    private bool _ajustandoTiempo; // evita aplicar cambios mientras se cargan los valores en los combos
+
+    /// <summary>
+    /// La orden no trae sesiones ni meses: se usó el valor por defecto (10 × 1). Algunos pacientes
+    /// vienen por menos sesiones, así que el aviso permite corregirlo antes de generar.
+    /// </summary>
+    private void MostrarEditorTiempo(DatosOrden orden)
+    {
+        _ajustandoTiempo = true;
+        SesionesTerapiaCombo.SelectedItem = orden.SesionesMensuales;
+        MesesTerapiaCombo.SelectedItem = orden.Meses;
+        _ajustandoTiempo = false;
+        _lineaTiempoAviso = ValidadorDocumentos.MensajeTiempoPorDefecto;
+        TiempoTerapiaPanel.Visibility = Visibility.Visible;
+    }
+
+    private void TiempoTerapia_Changed(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (_ajustandoTiempo || _lectura is not { } lectura) return;
+        if (SesionesTerapiaCombo.SelectedItem is not int sesiones || MesesTerapiaCombo.SelectedItem is not int meses) return;
+
+        // Elegido a mano: ya no es un valor por defecto (VerDatos deja de advertirlo).
+        var orden = lectura.Orden with { SesionesMensuales = sesiones, Meses = meses, TiempoPorDefecto = false };
+        _lectura = (lectura.Paciente, orden, lectura.Firma, lectura.RutaExamen);
+        ResumenDetalleText.Text = DetalleResumen(lectura.Paciente, orden);
+
+        string linea = $"Tiempo de terapia ajustado a mano: {sesiones} {(sesiones == 1 ? "sesión mensual" : "sesiones mensuales")} " +
+                       $"por {meses} {(meses == 1 ? "mes" : "meses")}.";
+        AvisoText.Text = AvisoText.Text.Replace(_lineaTiempoAviso, linea);
+        _lineaTiempoAviso = linea;
+    }
+
+    private string _lineaTiempoAviso = ""; // la línea del aviso que habla del tiempo de terapia
 
     private void VerDatosButton_Click(object sender, RoutedEventArgs e)
     {
@@ -267,7 +330,7 @@ public partial class MainWindow : Window
         }
 
         SugerirIAButton.IsEnabled = false;
-        Mouse.OverrideCursor = Cursors.Wait;
+        MostrarPensando(PensandoPlan, true);
         MostrarAviso(TipoAviso.Informacion, "Consultando a Gemini…");
         try
         {
@@ -276,6 +339,7 @@ public partial class MainWindow : Window
 
             ConservadosTextBox.Text = string.Join(Environment.NewLine, funciones.Conservados);
             AlteradosTextBox.Text = string.Join(Environment.NewLine, funciones.Alterados);
+            Aparecer(ColumnasPlan);
 
             MostrarAviso(TipoAviso.Advertencia, "Sugerencia lista. Revisa ambas listas antes de generar el plan.");
         }
@@ -285,7 +349,7 @@ public partial class MainWindow : Window
         }
         finally
         {
-            Mouse.OverrideCursor = null;
+            MostrarPensando(PensandoPlan, false);
             SugerirIAButton.IsEnabled = RutasInformes.Count > 0;
         }
     }
@@ -300,6 +364,7 @@ public partial class MainWindow : Window
 
         ConservadosConteo.Text = DescribirConteo(ListaTexto.ParsearItems(ConservadosTextBox.Text).Count);
         AlteradosConteo.Text = DescribirConteo(ListaTexto.ParsearItems(AlteradosTextBox.Text).Count);
+        ActualizarPasos();
     }
 
     private static string DescribirConteo(int cantidad) => cantidad == 1 ? "1 ítem" : $"{cantidad} ítems";
@@ -442,12 +507,15 @@ public partial class MainWindow : Window
         AvisoIconoText.Text = icono;
         AvisoIconoText.Foreground = (Brush)FindResource(claveIcono);
         AvisoText.Text = mensaje;
+        TiempoTerapiaPanel.Visibility = Visibility.Collapsed; // solo lo muestra MostrarEditorTiempo
 
         _accionAviso = accion;
         AvisoAccionButton.Content = textoAccion;
         AvisoAccionButton.Visibility = accion is null ? Visibility.Collapsed : Visibility.Visible;
 
+        bool yaVisible = AvisoBorder.Visibility == Visibility.Visible;
         AvisoBorder.Visibility = Visibility.Visible;
+        if (!yaVisible) AnimarAviso();
     }
 
     private void OcultarAviso()
@@ -586,7 +654,7 @@ public partial class MainWindow : Window
 
         var tipo = TipoSeleccionado;
         RedactarIAButton.IsEnabled = false;
-        Mouse.OverrideCursor = Cursors.Wait;
+        MostrarPensando(PensandoInforme, true);
         MostrarAviso(TipoAviso.Informacion, "Leyendo la evaluación y consultando a Gemini…");
         try
         {
@@ -602,6 +670,7 @@ public partial class MainWindow : Window
             CondicionTextBox.Text = texto.CondicionActual;
             PlanTextBox.Text = texto.PlanActual;
             _tipoRedactado = tipo;
+            Aparecer(ColumnasInforme);
 
             MostrarAviso(TipoAviso.Advertencia, "Informe redactado. Revisa la Condición actual y el Plan actual antes de generar.");
         }
@@ -611,7 +680,7 @@ public partial class MainWindow : Window
         }
         finally
         {
-            Mouse.OverrideCursor = null;
+            MostrarPensando(PensandoInforme, false);
             RedactarIAButton.IsEnabled = EvaluacionSelector.Ruta is not null;
         }
     }
@@ -650,6 +719,7 @@ public partial class MainWindow : Window
 
         CondicionConteo.Text = DescribirPalabras(CondicionTextBox.Text);
         PlanConteo.Text = DescribirPalabras(PlanTextBox.Text);
+        ActualizarPasos();
     }
 
     private static string DescribirPalabras(string texto)

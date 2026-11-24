@@ -61,7 +61,7 @@ public class LectorOrdenTests
 
         Assert.True(_lector.TryParse(lineas, out var orden));
         Assert.Equal(TipoOrden.OrdenCobro, orden.Tipo);
-        Assert.Equal("8601375", orden.NumeroDocumento);
+        Assert.Equal("1234569", orden.NumeroDocumento);
         Assert.Equal("F067", orden.Cie10Codigo);
         Assert.Null(orden.Cie10Descripcion);
         Assert.Equal(9, orden.CantidadAutorizada);
@@ -85,7 +85,7 @@ public class LectorOrdenTests
 
     private static IReadOnlyList<PdfLine> OrdenCobro(string observaciones) => new Lineas()
         .Titulo("ORDEN DE COBRO")
-        .Texto("CC 8601375 PACIENTE DE PRUEBA")
+        .Texto("CC 1234569 PACIENTE DE PRUEBA")
         .Texto("944301 944301 944301 TERAPIA DE REHABILITACION COGNITIVA (SESION) F067 9")
         .Titulo("Observaciones")
         .Texto(observaciones)

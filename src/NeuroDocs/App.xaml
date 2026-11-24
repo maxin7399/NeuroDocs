@@ -1,36 +1,58 @@
 ﻿<Application x:Class="NeuroDocs.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:NeuroDocs.Controls"
              StartupUri="MainWindow.xaml"
-             ThemeMode="Dark">
+             ThemeMode="Light">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Temas/PaletaOscura.xaml"/>
+                <ResourceDictionary Source="Temas/PaletaLavanda.xaml"/>
             </ResourceDictionary.MergedDictionaries>
+
+            <c:RadioPildoraConverter x:Key="RadioPildora"/>
+
+            <!-- Sora si está en Fuentes/ (se empaqueta con la app); si no, la fuente del sistema. -->
+            <FontFamily x:Key="FuenteApp">pack://application:,,,/Fuentes/#Sora, Segoe UI Variable Text, Segoe UI</FontFamily>
 
             <!-- Windows 11 usa la primera fuente; Windows 10, la segunda (mismos códigos de ícono). -->
             <FontFamily x:Key="FuenteIconos">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
 
-            <Style x:Key="TarjetaStyle" TargetType="Border">
-                <Setter Property="Background" Value="{StaticResource FondoTarjetaBrush}"/>
-                <Setter Property="BorderBrush" Value="{StaticResource BordeTarjetaBrush}"/>
-                <Setter Property="BorderThickness" Value="1"/>
-                <Setter Property="CornerRadius" Value="8"/>
+            <DropShadowEffect x:Key="BrilloSuave" Color="{StaticResource AcentoColor}" BlurRadius="26"
+                              ShadowDepth="0" Opacity="0.22"/>
+            <DropShadowEffect x:Key="BrilloBoton" Color="{StaticResource AcentoColor}" BlurRadius="18"
+                              ShadowDepth="0" Opacity="0.55"/>
+
+            <!-- ───── Tarjeta: el brillo va en un borde aparte para no desenfocar el texto ───── -->
+            <Style TargetType="c:Tarjeta">
                 <Setter Property="Padding" Value="18"/>
                 <Setter Property="Margin" Value="0,0,0,16"/>
-            </Style>
-
-            <Style x:Key="NumeroPasoStyle" TargetType="Border">
-                <Setter Property="Width" Value="26"/>
-                <Setter Property="Height" Value="26"/>
-                <Setter Property="CornerRadius" Value="13"/>
-                <Setter Property="Background" Value="{StaticResource AcentoBrush}"/>
-                <Setter Property="Margin" Value="0,0,10,0"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="c:Tarjeta">
+                            <Grid>
+                                <Border Background="{StaticResource FondoTarjetaBrush}" CornerRadius="16"
+                                        Effect="{StaticResource BrilloSuave}"/>
+                                <Border Background="{StaticResource FondoTarjetaBrush}" CornerRadius="16"
+                                        BorderBrush="{StaticResource BordeTarjetaBrush}" BorderThickness="1"/>
+                                <Border x:Name="PART_Luz" CornerRadius="16" Opacity="0" IsHitTestVisible="False">
+                                    <Border.Background>
+                                        <RadialGradientBrush MappingMode="Absolute" RadiusX="240" RadiusY="240"
+                                                             Center="-300,-300" GradientOrigin="-300,-300">
+                                            <GradientStop Color="#1F9B3FD9" Offset="0"/>
+                                            <GradientStop Color="#009B3FD9" Offset="1"/>
+                                        </RadialGradientBrush>
+                                    </Border.Background>
+                                </Border>
+                                <ContentPresenter Margin="{TemplateBinding Padding}"/>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
             </Style>
 
             <Style x:Key="TituloPasoStyle" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="16"/>
+                <Setter Property="FontSize" Value="15"/>
                 <Setter Property="FontWeight" Value="SemiBold"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
@@ -47,30 +69,110 @@
                 <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
 
-            <Style x:Key="BotonPrincipalStyle" TargetType="Button">
-                <Setter Property="Foreground" Value="White"/>
-                <Setter Property="Background" Value="{StaticResource AcentoBrush}"/>
-                <Setter Property="FontWeight" Value="SemiBold"/>
-                <Setter Property="Padding" Value="20,9"/>
+            <!-- ───── Botón secundario (implícito): píldora lavanda ───── -->
+            <Style TargetType="Button">
+                <Setter Property="Foreground" Value="{StaticResource TextoPrincipalBrush}"/>
+                <Setter Property="Background" Value="{StaticResource FondoBotonBrush}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource BordeTarjetaBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Padding" Value="14,6"/>
+                <Setter Property="FontSize" Value="13"/>
                 <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
-                            <Border x:Name="Fondo" Background="{TemplateBinding Background}"
-                                    CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <Border x:Name="Fondo" Background="{TemplateBinding Background}" CornerRadius="{Binding ActualHeight, RelativeSource={RelativeSource Self}, Converter={StaticResource RadioPildora}}"
+                                    BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                                    Padding="{TemplateBinding Padding}">
                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="Fondo" Property="Background" Value="{StaticResource AcentoHoverBrush}"/>
+                                    <Setter TargetName="Fondo" Property="Background" Value="{StaticResource FondoHoverBrush}"/>
+                                    <Setter TargetName="Fondo" Property="BorderBrush" Value="{StaticResource AcentoBrush}"/>
+                                </Trigger>
+                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                    <Setter TargetName="Fondo" Property="BorderBrush" Value="{StaticResource AcentoBrush}"/>
+                                    <Setter TargetName="Fondo" Property="BorderThickness" Value="2"/>
                                 </Trigger>
                                 <Trigger Property="IsPressed" Value="True">
-                                    <Setter TargetName="Fondo" Property="Opacity" Value="0.85"/>
+                                    <Setter TargetName="Fondo" Property="Background" Value="{StaticResource AcentoSuaveBrush}"/>
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter TargetName="Fondo" Property="Opacity" Value="0.5"/>
+                                    <Setter Property="Cursor" Value="Arrow"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- ───── Botón principal: morado sólido con brillo neón ───── -->
+            <Style x:Key="BotonPrincipalStyle" TargetType="Button">
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="Background" Value="{StaticResource AcentoBrush}"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="Padding" Value="18,8"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Grid>
+                                <Border x:Name="Brillo" Background="{TemplateBinding Background}" CornerRadius="{Binding ActualHeight, RelativeSource={RelativeSource Self}, Converter={StaticResource RadioPildora}}"
+                                        Effect="{StaticResource BrilloBoton}" Opacity="0.6"/>
+                                <Border x:Name="Fondo" Background="{TemplateBinding Background}" CornerRadius="{Binding ActualHeight, RelativeSource={RelativeSource Self}, Converter={StaticResource RadioPildora}}"
+                                        BorderBrush="Transparent" BorderThickness="2" Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Fondo" Property="Background" Value="{StaticResource AcentoHoverBrush}"/>
+                                    <Setter TargetName="Brillo" Property="Opacity" Value="1"/>
+                                </Trigger>
+                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                    <Setter TargetName="Fondo" Property="BorderBrush" Value="#FBF7FF"/>
+                                    <Setter TargetName="Brillo" Property="Opacity" Value="1"/>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="Fondo" Property="Opacity" Value="0.88"/>
                                 </Trigger>
                                 <Trigger Property="IsEnabled" Value="False">
                                     <Setter TargetName="Fondo" Property="Background" Value="{StaticResource BotonDeshabilitadoBrush}"/>
+                                    <Setter TargetName="Brillo" Property="Visibility" Value="Collapsed"/>
                                     <Setter Property="Foreground" Value="{StaticResource TextoSecundarioBrush}"/>
                                     <Setter Property="Cursor" Value="Arrow"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- ───── Botón de la barra superior: transparente sobre el morado ───── -->
+            <Style x:Key="BotonBarraStyle" TargetType="Button">
+                <Setter Property="Foreground" Value="{StaticResource BarraTextoBrush}"/>
+                <Setter Property="Padding" Value="12,6"/>
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="Fondo" Background="Transparent" CornerRadius="{Binding ActualHeight, RelativeSource={RelativeSource Self}, Converter={StaticResource RadioPildora}}"
+                                    BorderBrush="Transparent" BorderThickness="1" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Fondo" Property="Background" Value="{StaticResource BarraHoverBrush}"/>
+                                </Trigger>
+                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                    <Setter TargetName="Fondo" Property="BorderBrush" Value="{StaticResource BarraTextoBrush}"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -81,45 +183,150 @@
             <Style x:Key="BotonEnlaceStyle" TargetType="Button">
                 <Setter Property="Foreground" Value="{StaticResource EnlaceBrush}"/>
                 <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="FontSize" Value="12.5"/>
                 <Setter Property="Cursor" Value="Hand"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
-                            <ContentPresenter VerticalAlignment="Center"/>
+                            <Border x:Name="Fondo" Background="Transparent" CornerRadius="{Binding ActualHeight, RelativeSource={RelativeSource Self}, Converter={StaticResource RadioPildora}}" Padding="8,3">
+                                <ContentPresenter VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Fondo" Property="Background" Value="{StaticResource AcentoSuaveBrush}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
             </Style>
-            
-            <!-- Pestañas tipo botón segmentado: la activa se rellena con el color de acento. -->
-            <Style x:Key="PestanaStyle" TargetType="TabItem">
+
+            <!-- ───── Selector de modo en la barra (Plan / Informe): segmentos tipo píldora ───── -->
+            <Style x:Key="SegmentoModoStyle" TargetType="RadioButton">
+                <Setter Property="Foreground" Value="{StaticResource BarraTextoSuaveBrush}"/>
+                <Setter Property="FontSize" Value="13"/>
                 <Setter Property="Cursor" Value="Hand"/>
-                <Setter Property="Margin" Value="0,0,8,4"/>
-                <Setter Property="Foreground" Value="{StaticResource TextoPrincipalBrush}"/>
+                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
                 <Setter Property="Template">
                     <Setter.Value>
-                        <ControlTemplate TargetType="TabItem">
-                            <Border x:Name="Fondo" Background="Transparent" CornerRadius="6" Padding="18,8"
-                        BorderThickness="1" BorderBrush="{StaticResource BordeTarjetaBrush}">
-                                <ContentPresenter x:Name="Contenido" ContentSource="Header"
-                                      HorizontalAlignment="Center" VerticalAlignment="Center"
-                                      TextElement.FontSize="14"
-                                      TextElement.Foreground="{StaticResource TextoSecundarioBrush}"/>
+                        <ControlTemplate TargetType="RadioButton">
+                            <Border x:Name="Fondo" Background="Transparent" CornerRadius="{Binding ActualHeight, RelativeSource={RelativeSource Self}, Converter={StaticResource RadioPildora}}" Padding="14,6">
+                                <ContentPresenter VerticalAlignment="Center"/>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="Fondo" Property="Background" Value="{StaticResource PestanaHoverBrush}"/>
-                                    <Setter TargetName="Contenido" Property="TextElement.Foreground" Value="{StaticResource TextoPrincipalBrush}"/>
+                                    <Setter TargetName="Fondo" Property="Background" Value="{StaticResource BarraHoverBrush}"/>
                                 </Trigger>
-                                <!-- Va después del hover para que la pestaña activa no cambie al pasar el mouse. -->
-                                <Trigger Property="IsSelected" Value="True">
-                                    <Setter TargetName="Fondo" Property="Background" Value="{StaticResource AcentoBrush}"/>
-                                    <Setter TargetName="Fondo" Property="BorderBrush" Value="{StaticResource AcentoBrush}"/>
-                                    <Setter TargetName="Contenido" Property="TextElement.Foreground" Value="White"/>
-                                    <Setter TargetName="Contenido" Property="TextElement.FontWeight" Value="SemiBold"/>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter TargetName="Fondo" Property="Background" Value="{StaticResource BarraTextoBrush}"/>
+                                    <Setter Property="Foreground" Value="{StaticResource TextoPrincipalBrush}"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                </Trigger>
+                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                    <Setter TargetName="Fondo" Property="BorderBrush" Value="{StaticResource BarraTextoBrush}"/>
+                                    <Setter TargetName="Fondo" Property="BorderThickness" Value="1"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- ───── Casilla (implícita): cuadro redondeado morado con check ───── -->
+            <Style TargetType="CheckBox">
+                <Setter Property="Foreground" Value="{StaticResource TextoPrincipalBrush}"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="CheckBox">
+                            <StackPanel Orientation="Horizontal" Background="Transparent">
+                                <Border x:Name="Caja" Width="20" Height="20" CornerRadius="6" BorderThickness="1.5"
+                                        BorderBrush="{StaticResource TextoSecundarioBrush}" Background="{StaticResource FondoBotonBrush}"
+                                        VerticalAlignment="Center">
+                                    <TextBlock x:Name="Marca" Text="&#xE73E;" FontFamily="{StaticResource FuenteIconos}" FontSize="12"
+                                               Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               Visibility="Collapsed"/>
+                                </Border>
+                                <ContentPresenter Margin="10,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Caja" Property="BorderBrush" Value="{StaticResource AcentoBrush}"/>
+                                </Trigger>
+                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                    <Setter TargetName="Caja" Property="BorderBrush" Value="{StaticResource AcentoBrush}"/>
+                                    <Setter TargetName="Caja" Property="BorderThickness" Value="2"/>
+                                </Trigger>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter TargetName="Caja" Property="Background" Value="{StaticResource AcentoBrush}"/>
+                                    <Setter TargetName="Caja" Property="BorderBrush" Value="{StaticResource AcentoBrush}"/>
+                                    <Setter TargetName="Marca" Property="Visibility" Value="Visible"/>
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Opacity" Value="0.5"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- ───── Botón de opción (implícito): círculo con punto morado ───── -->
+            <Style TargetType="RadioButton">
+                <Setter Property="Foreground" Value="{StaticResource TextoPrincipalBrush}"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="RadioButton">
+                            <StackPanel Orientation="Horizontal" Background="Transparent">
+                                <Grid Width="20" Height="20" VerticalAlignment="Center">
+                                    <Ellipse x:Name="Aro" Stroke="{StaticResource TextoSecundarioBrush}" StrokeThickness="1.5"
+                                             Fill="{StaticResource FondoBotonBrush}"/>
+                                    <Ellipse x:Name="Punto" Width="10" Height="10" Fill="{StaticResource AcentoBrush}" Visibility="Collapsed"/>
+                                </Grid>
+                                <ContentPresenter Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Aro" Property="Stroke" Value="{StaticResource AcentoBrush}"/>
+                                </Trigger>
+                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                    <Setter TargetName="Aro" Property="Stroke" Value="{StaticResource AcentoBrush}"/>
+                                    <Setter TargetName="Aro" Property="StrokeThickness" Value="2"/>
+                                </Trigger>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter TargetName="Aro" Property="Stroke" Value="{StaticResource AcentoBrush}"/>
+                                    <Setter TargetName="Punto" Property="Visibility" Value="Visible"/>
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Opacity" Value="0.5"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Punto de color delante de los títulos de columna -->
+            <Style x:Key="PuntoColumnaStyle" TargetType="Ellipse">
+                <Setter Property="Width" Value="9"/>
+                <Setter Property="Height" Value="9"/>
+                <Setter Property="Margin" Value="0,0,8,0"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+
+            <!-- Puntos que laten mientras trabaja la IA -->
+            <Style x:Key="PuntoNeuronaStyle" TargetType="Ellipse">
+                <Setter Property="Width" Value="8"/>
+                <Setter Property="Height" Value="8"/>
+                <Setter Property="Margin" Value="0,0,6,0"/>
+                <Setter Property="Fill" Value="{StaticResource AcentoBrush}"/>
+                <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect Color="{StaticResource BrilloColor}" BlurRadius="10" ShadowDepth="0" Opacity="0.9"/>
                     </Setter.Value>
                 </Setter>
             </Style>

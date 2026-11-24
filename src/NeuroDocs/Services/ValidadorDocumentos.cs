@@ -12,7 +12,7 @@ public static class ValidadorDocumentos
         if (paciente.Campos.TryGetValue(CamposPaciente.Identificacion, out var identificacion)
             && orden.NumeroDocumento is { } documentoOrden)
         {
-            // "C.C. 8601373, Repelón – Atlántico." → "8601373" (tolera puntos: 8.601.373)
+            // "C.C. 1234567, Ciudad Ejemplo – Atlántico." → "1234567" (tolera puntos: 1.234.567)
             string documentoHistoria = Regex.Replace(
                 Regex.Match(identificacion, @"\d[\d.]{4,}").Value, @"\D", "");
 
@@ -31,11 +31,13 @@ public static class ValidadorDocumentos
         }
 
         if (orden.TiempoPorDefecto)
-        {
-            advertencias.Add(
-                $"La orden no indica el tiempo de terapia. Se usó el valor por defecto: " +
-                $"{LectorOrden.SesionesPorDefecto} sesiones mensuales por {LectorOrden.MesesPorDefecto} {(LectorOrden.MesesPorDefecto == 1 ? "mes" : "meses")}. Verifícalo antes de generar.");
-        }
+            advertencias.Add(MensajeTiempoPorDefecto);
         return advertencias;
     }
+
+    /// <summary>La ventana principal busca esta línea en el aviso para reemplazarla si el usuario cambia el tiempo.</summary>
+    public static string MensajeTiempoPorDefecto =>
+        $"La orden no indica el tiempo de terapia. Se usó el valor por defecto: " +
+        $"{LectorOrden.SesionesPorDefecto} sesiones mensuales por {LectorOrden.MesesPorDefecto} {(LectorOrden.MesesPorDefecto == 1 ? "mes" : "meses")}. " +
+        "Si el paciente viene por otro tiempo, cámbialo aquí abajo.";
 }

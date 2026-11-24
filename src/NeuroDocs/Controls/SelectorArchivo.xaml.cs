@@ -1,7 +1,9 @@
 ﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using Microsoft.Win32;
 
 namespace NeuroDocs.Controls;
@@ -76,9 +78,22 @@ public partial class SelectorArchivo : UserControl
     private void ActualizarVista()
     {
         bool hayArchivo = _ruta is not null;
+        bool recienCargado = hayArchivo && IconoText.Text != IconoCompletado;
 
+        // Vacío: círculo con borde y documento gris. Cargado: círculo lila relleno con check blanco.
         IconoText.Text = hayArchivo ? IconoCompletado : _iconoVacio;
-        IconoText.Foreground = (Brush)FindResource(hayArchivo ? "ExitoBrush" : "TextoSecundarioBrush");
+        IconoText.Foreground = hayArchivo ? Brushes.White : (Brush)FindResource("TextoSecundarioBrush");
+        IconoCirculo.Background = hayArchivo ? (Brush)FindResource("ExitoBrush") : Brushes.Transparent;
+        IconoCirculo.BorderBrush = (Brush)FindResource(hayArchivo ? "ExitoBrush" : "BordeTarjetaBrush");
+        if (recienCargado && SystemParameters.ClientAreaAnimation)
+        {
+            var rebote = new DoubleAnimation(0.4, 1, TimeSpan.FromMilliseconds(420))
+            {
+                EasingFunction = new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.6 }
+            };
+            IconoEscala.BeginAnimation(ScaleTransform.ScaleXProperty, rebote);
+            IconoEscala.BeginAnimation(ScaleTransform.ScaleYProperty, rebote);
+        }
 
         ArchivoText.Text = hayArchivo
             ? Path.GetFileName(_ruta)
@@ -126,6 +141,12 @@ public partial class SelectorArchivo : UserControl
     private void QuitarResaltado()
     {
         Contenedor.BorderBrush = Brushes.Transparent;
-        Contenedor.Background = Brushes.Transparent;
+        Contenedor.Background = IsMouseOver ? (Brush)FindResource("FondoHoverBrush") : Brushes.Transparent;
     }
+
+    // Fondo lavanda suave al pasar el mouse por la fila.
+    private void OnMouseEnter(object sender, MouseEventArgs e) =>
+        Contenedor.Background = (Brush)FindResource("FondoHoverBrush");
+
+    private void OnMouseLeave(object sender, MouseEventArgs e) => QuitarResaltado();
 }

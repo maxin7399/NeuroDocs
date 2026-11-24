@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	<Version>1.3.0</Version>
+	<Version>1.4.0</Version>
 	<Product>NeuroDocs</Product>
 	<Description>Generación de planes de rehabilitación neuropsicológica</Description>
 	<Authors>Mateo Marciglia</Authors>
@@ -30,6 +30,8 @@
 	<ItemGroup>
 		<Resource Include="Assets\NeuroDocs.ico" />
 		<Resource Include="Assets\NeuroDocs-256.png" />
+		<!-- Fuente Sora (opcional): si hay .ttf en Fuentes/, se empaqueta y la app la usa. -->
+		<Resource Include="Fuentes\*.ttf" />
 	</ItemGroup>
 
   <ItemGroup>
@@ -43,6 +45,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Plantillas\PlantillaPlanRehabilitacion.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <!-- La licencia OFL de Sora debe acompañar a la fuente -->
+    <None Update="Fuentes\OFL.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

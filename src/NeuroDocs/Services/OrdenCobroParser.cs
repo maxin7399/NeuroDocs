@@ -11,7 +11,7 @@ public sealed class OrdenCobroParser
         @"(\d+)\s*sesiones\s*x\s*mes\s*x\s*(\d+)\s*mes",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-    // "CC 8601375 OSCARMIN MUÑOZ JIMENEZ ..." (también TI, CE, RC, PA)
+    // "CC 1234569 NOMBRE APELLIDO ..." (también TI, CE, RC, PA)
     private static readonly Regex DocumentoRegex = new(
         @"^(?:CC|TI|CE|RC|PA)\s+(\d{5,})\b",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);

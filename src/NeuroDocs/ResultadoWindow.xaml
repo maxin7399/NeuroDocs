@@ -1,25 +1,37 @@
 ﻿<Window x:Class="NeuroDocs.ResultadoWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="NeuroDocs — Datos extraídos" Height="650" Width="700"
+        Title="NeuroDocs — Datos extraídos" Height="650" Width="720"
         WindowStartupLocation="CenterOwner"
+        FontFamily="{StaticResource FuenteApp}" FontSize="13.5"
         Background="{StaticResource FondoVentanaBrush}"
         Foreground="{StaticResource TextoPrincipalBrush}"
         Icon="/Assets/NeuroDocs.ico">
 
-    <Grid Margin="20">
+    <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBox Grid.Row="0" x:Name="ContenidoTextBox" IsReadOnly="True"
-                 FontFamily="Consolas" FontSize="13" TextWrapping="Wrap"
-                 VerticalScrollBarVisibility="Auto"/>
+        <Border Background="{StaticResource BarraFondoBrush}" Padding="22,14">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Style="{StaticResource IconoStyle}" Text="&#xE77B;" FontSize="18" Margin="0,0,12,0"
+                           Foreground="{StaticResource BarraTextoBrush}"/>
+                <TextBlock Text="Datos extraídos de los documentos" FontSize="16" FontWeight="SemiBold"
+                           Foreground="{StaticResource BarraTextoBrush}" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
 
-        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
-            <Button Content="Copiar" Width="100" Height="32" Click="CopiarButton_Click"/>
-            <Button Content="Cerrar" Width="100" Height="32" Margin="10,0,0,0"
+        <TextBox Grid.Row="1" x:Name="ContenidoTextBox" IsReadOnly="True" Margin="18,18,18,0"
+                 FontFamily="Cascadia Mono, Consolas" FontSize="13" TextWrapping="Wrap" Padding="12,10"
+                 Background="{StaticResource FondoTarjetaBrush}" BorderBrush="{StaticResource BordeTarjetaBrush}"
+                 VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top"/>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="18,14,18,18">
+            <Button Content="Copiar" Click="CopiarButton_Click"/>
+            <Button Content="Cerrar" Margin="10,0,0,0" Style="{StaticResource BotonPrincipalStyle}"
                     IsCancel="True" Click="CerrarButton_Click"/>
         </StackPanel>
     </Grid>

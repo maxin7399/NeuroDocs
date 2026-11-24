@@ -1,0 +1,76 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Lavanda neón: claro, morado, sin blanco puro. Todos los colores de la app salen de aquí. -->
+
+    <!-- Colores base (para brillos y animaciones) -->
+    <Color x:Key="AcentoColor">#9B3FD9</Color>
+    <Color x:Key="BrilloColor">#B86CFF</Color>
+
+    <!-- Superficies -->
+    <SolidColorBrush x:Key="FondoVentanaBrush" Color="#E6DFF3"/>
+    <SolidColorBrush x:Key="FondoTarjetaBrush" Color="#F1ECF9"/>
+    <SolidColorBrush x:Key="FondoSuaveBrush" Color="#E9E1F5"/>
+    <SolidColorBrush x:Key="FondoHoverBrush" Color="#EADFF8"/>
+    <SolidColorBrush x:Key="FondoBotonBrush" Color="#F6F2FB"/>
+    <SolidColorBrush x:Key="BordeTarjetaBrush" Color="#D3C6E8"/>
+
+    <!-- Texto -->
+    <SolidColorBrush x:Key="TextoPrincipalBrush" Color="#26193A"/>
+    <SolidColorBrush x:Key="TextoSecundarioBrush" Color="#665780"/>
+    <SolidColorBrush x:Key="EnlaceBrush" Color="#8E3BD1"/>
+
+    <!-- Acento -->
+    <SolidColorBrush x:Key="AcentoBrush" Color="#9B3FD9"/>
+    <SolidColorBrush x:Key="AcentoHoverBrush" Color="#A953E3"/>
+    <SolidColorBrush x:Key="AcentoSuaveBrush" Color="#E2D3F4"/>
+    <SolidColorBrush x:Key="BotonDeshabilitadoBrush" Color="#D9CCEB"/>
+    <SolidColorBrush x:Key="ExitoBrush" Color="#8A5CD6"/>
+
+    <!-- Barra superior -->
+    <SolidColorBrush x:Key="BarraFondoBrush" Color="#7A2FBA"/>
+    <SolidColorBrush x:Key="BarraTextoBrush" Color="#FBF7FF"/>
+    <SolidColorBrush x:Key="BarraTextoSuaveBrush" Color="#E3D3F7"/>
+    <SolidColorBrush x:Key="BarraHoverBrush" Color="#26FFFFFF"/>
+    <SolidColorBrush x:Key="BarraSegmentoBrush" Color="#2EFFFFFF"/>
+
+    <!-- Pasos -->
+    <SolidColorBrush x:Key="PasoFondoBrush" Color="#EFE8F8"/>
+    <SolidColorBrush x:Key="PasoActivoFondoBrush" Color="#E4D4F6"/>
+
+    <!-- Columnas: Conservados (lila azulado), Alterados (lila orquídea), Informe (violeta) -->
+    <SolidColorBrush x:Key="ConservadosFondoBrush" Color="#E6DBF7"/>
+    <SolidColorBrush x:Key="ConservadosBordeBrush" Color="#CDB8EC"/>
+    <SolidColorBrush x:Key="ConservadosPuntoBrush" Color="#8A5CD6"/>
+    <SolidColorBrush x:Key="AlteradosFondoBrush" Color="#F1DAF0"/>
+    <SolidColorBrush x:Key="AlteradosBordeBrush" Color="#E2BBE0"/>
+    <SolidColorBrush x:Key="AlteradosPuntoBrush" Color="#B8479F"/>
+    <SolidColorBrush x:Key="InformeFondoBrush" Color="#E6DCF4"/>
+    <SolidColorBrush x:Key="InformeBordeBrush" Color="#D0BDE9"/>
+    <SolidColorBrush x:Key="InformePuntoBrush" Color="#9B3FD9"/>
+
+    <!-- Barra de avisos -->
+    <SolidColorBrush x:Key="AvisoInfoFondoBrush" Color="#E6DCF6"/>
+    <SolidColorBrush x:Key="AvisoInfoIconoBrush" Color="#8E3BD1"/>
+    <SolidColorBrush x:Key="AvisoExitoFondoBrush" Color="#E0DAF8"/>
+    <SolidColorBrush x:Key="AvisoExitoIconoBrush" Color="#6B4FD0"/>
+    <SolidColorBrush x:Key="AvisoAdvertenciaFondoBrush" Color="#FBF0D6"/>
+    <SolidColorBrush x:Key="AvisoAdvertenciaIconoBrush" Color="#8A5A00"/>
+    <SolidColorBrush x:Key="AvisoErrorFondoBrush" Color="#F8DCE3"/>
+    <SolidColorBrush x:Key="AvisoErrorIconoBrush" Color="#C0304F"/>
+
+    <!-- Acento del tema Fluent (casillas, combos, foco de los cuadros de texto) -->
+    <Color x:Key="SystemAccentColor">#9B3FD9</Color>
+    <Color x:Key="SystemAccentColorLight1">#A953E3</Color>
+    <Color x:Key="SystemAccentColorLight2">#B86CFF</Color>
+    <Color x:Key="SystemAccentColorLight3">#D2A6FF</Color>
+    <Color x:Key="SystemAccentColorDark1">#8E3BD1</Color>
+    <Color x:Key="SystemAccentColorDark2">#7A2FB8</Color>
+    <Color x:Key="SystemAccentColorDark3">#64259A</Color>
+    <SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="#9B3FD9"/>
+    <SolidColorBrush x:Key="AccentFillColorSecondaryBrush" Color="#E69B3FD9"/>
+    <SolidColorBrush x:Key="AccentFillColorTertiaryBrush" Color="#CC9B3FD9"/>
+    <SolidColorBrush x:Key="AccentTextFillColorPrimaryBrush" Color="#7A2FB8"/>
+    <SolidColorBrush x:Key="AccentTextFillColorSecondaryBrush" Color="#64259A"/>
+    <SolidColorBrush x:Key="AccentTextFillColorTertiaryBrush" Color="#8E3BD1"/>
+</ResourceDictionary>

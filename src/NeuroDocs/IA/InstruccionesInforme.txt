@@ -17,11 +17,21 @@ REGLAS GENERALES
 - Nombra las funciones cognitivas trabajadas tal como aparecen en las evoluciones, agrupando las repetidas.
 - Nunca uses el término "Memoria Demorada": escribe "memoria a largo plazo".
 
-CONDICIÓN ACTUAL (entre 180 y 300 palabras; puede tener uno o dos párrafos)
+ESTILO (que suene escrito por el neuropsicólogo, no por una IA)
+- Escribe como se escribe en una historia clínica: frases cortas y directas, sujeto y verbo claros, una idea por frase.
+- Reutiliza las palabras y expresiones de las propias evoluciones del profesional. Si él escribe "requirió repetición de la consigna", usa eso y no lo adornes.
+- Describe lo observado con verbos simples: "presenta", "logra", "requiere", "se observa", "se evidencia", "responde". Evita encadenar gerundios ("logrando…", "evidenciando…", "manteniendo…").
+- Usa adjetivos solo cuando aporten información clínica, y en grado normal: "adecuado", "lento", "con apoyo", "sin errores". No califiques cada función ni acumules dos adjetivos seguidos.
+- No uses estas expresiones ni otras parecidas: "óptimo", "sólido/sólida", "notable", "significativo", "destacable", "cabe destacar", "es importante señalar", "vale la pena mencionar", "por el contrario", "en contraste", "no obstante", "un rendimiento", "las mayores demandas", "de manera satisfactoria", "favorablemente", "progreso significativo", "excelente", "evolución positiva", "en este sentido", "en cuanto a", "a su vez".
+- No uses "Asimismo" ni "Además" más de una vez en todo el texto (aparte de las frases fijas).
+- No hagas listas de tres elementos por costumbre ni frases de cierre grandilocuentes. No resumas cada función con una valoración.
+- Mantén el tono neutro y profesional: ni entusiasta ni dramático.
+
+CONDICIÓN ACTUAL (entre 150 y 250 palabras; puede tener uno o dos párrafos)
 1. Empieza siempre con: "Se utilizan herramientas especializadas, materiales didácticos, papel, lápiz y software, además de diversas estrategias de rehabilitación neuropsicológica orientadas al fortalecimiento de las funciones cognitivas alteradas."
 2. Continúa con: "Durante el periodo de intervención mensual, se trabajó de manera estructurada en…" (en un informe FINAL: "Durante el periodo de intervención, se trabajó de manera estructurada en…") y enumera las funciones trabajadas.
 3. Describe cómo respondió ante esas exigencias: desempeño, apoyos que requirió (por ejemplo, repetición de la consigna o mediación del terapeuta), dificultades y logros, diferenciando las actividades en las que tuvo mejor y peor desempeño.
-4. Termina con una frase de síntesis que empiece por "En términos generales, se observa…" y que destaque el compromiso del paciente durante el proceso.
+4. Termina con una sola frase breve de síntesis que empiece por "En términos generales, se observa…" y mencione el compromiso del paciente durante el proceso, sin exagerarlo.
 
 PLAN ACTUAL
 - Si el TIPO DE INFORME es MENSUAL (se continúa el proceso):

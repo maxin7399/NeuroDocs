@@ -13,7 +13,7 @@ public class ReglasPlanTests
         return new DatosPaciente(campos, diagnosticos);
     }
 
-    private static DatosOrden Orden(string? documento = "8601375", string? descripcion = "TRASTORNO DE LA CONDUCTA SOCIABLE",
+    private static DatosOrden Orden(string? documento = "1234569", string? descripcion = "TRASTORNO DE LA CONDUCTA SOCIABLE",
                                     TipoOrden tipo = TipoOrden.SolicitudServicio, bool tiempoPorDefecto = false) =>
         new(tipo, documento, 10, 3, "F912", descripcion, TiempoPorDefecto: tiempoPorDefecto);
 
@@ -35,15 +35,15 @@ public class ReglasPlanTests
     [Fact]
     public void Advertencia_DocumentoNoCoincide()
     {
-        var advertencias = ValidadorDocumentos.Validar(Paciente("C.C. 8.601.373, Repelón – Atlántico."), Orden());
+        var advertencias = ValidadorDocumentos.Validar(Paciente("C.C. 1.234.567, Ciudad Ejemplo – Atlántico."), Orden());
 
-        Assert.Contains(advertencias, a => a.Contains("8601373") && a.Contains("8601375"));
+        Assert.Contains(advertencias, a => a.Contains("1234567") && a.Contains("1234569"));
     }
 
     [Fact]
     public void SinAdvertencias_CuandoTodoCoincide()
     {
-        var advertencias = ValidadorDocumentos.Validar(Paciente("C.C. 8601375, Repelón."), Orden());
+        var advertencias = ValidadorDocumentos.Validar(Paciente("C.C. 1234569, Ciudad Ejemplo."), Orden());
 
         Assert.Empty(advertencias);
     }
