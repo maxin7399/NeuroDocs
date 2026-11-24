@@ -81,7 +81,7 @@
                     </Border>
                     <StackPanel DockPanel.Dock="Left" Margin="12,0,0,0" VerticalAlignment="Center">
                         <TextBlock Text="NeuroDocs" FontSize="17" FontWeight="SemiBold" Foreground="{StaticResource BarraTextoBrush}"/>
-                        <TextBlock Text="Rehabilitación neuropsicológica cognitiva" FontSize="11"
+                        <TextBlock Text="Software de apoyo a la rehabilitación neuropsicológica" FontSize="11"
                                    Foreground="{StaticResource BarraTextoSuaveBrush}"/>
                     </StackPanel>
 
