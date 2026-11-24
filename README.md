@@ -45,7 +45,7 @@ dotnet run --project src/NeuroDocs
 dotnet test
 ```
 
-`publicar.ps1` genera `publish/NeuroDocs-<versión>.zip`, un ejecutable autocontenido listo para copiar.
+`publicar.ps1` genera `publish/NeuroDocs-<versión>.zip`: una carpeta autocontenida (no necesita .NET instalado) lista para copiar.
 
 ## Estructura
 

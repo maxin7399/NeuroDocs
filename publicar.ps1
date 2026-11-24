@@ -16,10 +16,10 @@ if (Test-Path $carpeta) { Remove-Item $carpeta -Recurse -Force }
 if (Test-Path $zip) { Remove-Item $zip -Force }
 
 Write-Host "Publicando NeuroDocs $version..." -ForegroundColor Cyan
+# Carpeta normal (exe + DLL), sin "un solo archivo": un ejecutable empaquetado que se
+# autoextrae hacía que Google Drive marcara el zip como software malicioso.
 dotnet publish $proyecto -c Release -r win-x64 --self-contained true `
-    -p:PublishSingleFile=true `
-    -p:IncludeNativeLibrariesForSelfExtract=true `
-    -p:EnableCompressionInSingleFile=true `
+    -p:SatelliteResourceLanguages=es `
     -p:DebugType=none `
     -o $carpeta
 if ($LASTEXITCODE -ne 0) { throw "dotnet publish falló" }
@@ -43,7 +43,7 @@ ACTUALIZAR A UNA VERSIÓN NUEVA
 Cerrar NeuroDocs, borrar la carpeta anterior y descomprimir la nueva en el mismo lugar.
 La configuración (clave de Gemini y modelo) se conserva.
 
-No modificar ni mover las carpetas Plantillas e IA: la aplicación las necesita junto a NeuroDocs.exe.
+No modificar, mover ni borrar los archivos de la carpeta: la aplicación los necesita junto a NeuroDocs.exe.
 "@ | Set-Content (Join-Path $carpeta "LEEME.txt") -Encoding UTF8
 
 Compress-Archive -Path $carpeta -DestinationPath $zip

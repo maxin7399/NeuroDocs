@@ -169,11 +169,23 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <TextBlock Grid.ColumnSpan="3" Text="Documentos del paciente" Style="{StaticResource TituloPasoStyle}"
-                                   Margin="2,0,0,8"/>
+                        <!-- Título y, a la derecha, la emisión del plan (así no ocupa una fila propia) -->
+                        <DockPanel Grid.ColumnSpan="3" Margin="2,0,4,6">
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <Border Width="28" Height="28" CornerRadius="14" Margin="0,0,10,0" Background="{StaticResource AcentoSuaveBrush}">
+                                    <TextBlock Style="{StaticResource IconoStyle}" FontSize="13" Text="&#xE787;"
+                                               Foreground="{StaticResource AcentoBrush}" HorizontalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="Emisión del plan" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                <ComboBox x:Name="MesCombo" Width="140"
+                                          DisplayMemberPath="Nombre" SelectedValuePath="Numero"/>
+                                <ComboBox x:Name="AnioCombo" Width="96" Margin="8,0,0,0"/>
+                            </StackPanel>
+                            <TextBlock Text="Documentos del paciente" Style="{StaticResource TituloPasoStyle}" VerticalAlignment="Center"/>
+                        </DockPanel>
 
                         <!-- Examen(es) -->
-                        <StackPanel Grid.Row="1" Grid.Column="0">
+                        <StackPanel Grid.Row="1" Grid.Column="0" Grid.RowSpan="2">
                             <c:SelectorArchivo x:Name="HistoriaSelector" Titulo="Examen (ECC, AD4, AD5)"
                                                RutaCambiada="DocumentoPaciente_RutaCambiada"/>
                             <Button x:Name="AgregarExamenButton" HorizontalAlignment="Right" Margin="0,-2,6,0"
@@ -189,31 +201,14 @@
                                                RutaCambiada="DocumentoPaciente_RutaCambiada"/>
                         </StackPanel>
 
-                        <!-- Orden y emisión -->
-                        <StackPanel Grid.Row="1" Grid.Column="2">
-                            <c:SelectorArchivo x:Name="OrdenSelector" Titulo="Orden (servicio o cobro)"
-                                               RutaCambiada="DocumentoPaciente_RutaCambiada"/>
-                            <Grid Margin="10,6,4,0">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <Border Width="32" Height="32" CornerRadius="16" Margin="0,0,12,0" Background="{StaticResource AcentoSuaveBrush}">
-                                    <TextBlock Style="{StaticResource IconoStyle}" FontSize="14" Text="&#xE787;"
-                                               Foreground="{StaticResource AcentoBrush}" HorizontalAlignment="Center"/>
-                                </Border>
-                                <TextBlock Grid.Column="1" Text="Emisión del plan" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                                <ComboBox Grid.Column="2" x:Name="MesCombo" Width="140"
-                                          DisplayMemberPath="Nombre" SelectedValuePath="Numero"/>
-                                <ComboBox Grid.Column="3" x:Name="AnioCombo" Width="96" Margin="8,0,0,0"/>
-                            </Grid>
-                        </StackPanel>
+                        <!-- Orden -->
+                        <c:SelectorArchivo Grid.Row="1" Grid.Column="2" x:Name="OrdenSelector" Titulo="Orden (servicio o cobro)"
+                                           RutaCambiada="DocumentoPaciente_RutaCambiada"/>
 
-                        <!-- Resumen del paciente -->
-                        <Border Grid.Row="2" Grid.ColumnSpan="3" x:Name="ResumenBorder" Visibility="Collapsed" Margin="0,12,0,0"
-                                Background="{StaticResource AcentoSuaveBrush}" CornerRadius="12" Padding="12,10">
+                        <!-- Resumen del paciente: bajo la orden, a la altura de "Agregar examen" -->
+                        <Border Grid.Row="2" Grid.Column="2" x:Name="ResumenBorder" Visibility="Collapsed" Margin="0,4,0,0"
+                                VerticalAlignment="Top"
+                                Background="{StaticResource AcentoSuaveBrush}" CornerRadius="12" Padding="10,6">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -224,19 +219,20 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                <Border x:Name="ResumenAvatar" Width="34" Height="34" CornerRadius="17" Margin="0,0,12,0"
+                                <Border x:Name="ResumenAvatar" Width="30" Height="30" CornerRadius="15" Margin="0,0,10,0"
                                         Background="{StaticResource AcentoBrush}" VerticalAlignment="Center">
                                     <TextBlock x:Name="ResumenIniciales" Foreground="White" FontWeight="SemiBold" FontSize="12"
                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                     <TextBlock x:Name="ResumenNombreText" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
-                                    <TextBlock x:Name="ResumenDetalleText" Style="{StaticResource TextoSecundarioStyle}"/>
+                                    <TextBlock x:Name="ResumenDetalleText" Style="{StaticResource TextoSecundarioStyle}"
+                                               TextTrimming="CharacterEllipsis"/>
                                 </StackPanel>
                                 <Button Grid.Column="2" x:Name="VerDatosButton" Content="Ver datos"
                                         Style="{StaticResource BotonEnlaceStyle}" Margin="12,0,0,0" Click="VerDatosButton_Click"/>
                                 <ProgressBar Grid.Row="1" Grid.ColumnSpan="3" x:Name="LecturaProgress" IsIndeterminate="True"
-                                             Height="3" Margin="0,10,0,0" Visibility="Collapsed"/>
+                                             Height="3" Margin="0,6,0,0" Visibility="Collapsed"/>
                             </Grid>
                         </Border>
                     </Grid>
@@ -253,16 +249,47 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*" MinHeight="90"/>
-                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <StackPanel Grid.ColumnSpan="3" Margin="2,0,0,8">
-                            <TextBlock Text="Funciones evaluadas con IA" Style="{StaticResource TituloPasoStyle}"/>
-                            <TextBlock Style="{StaticResource TextoSecundarioStyle}"
-                                       Text="Estos documentos solo se envían a Gemini para sugerir conservados y alterados."/>
-                        </StackPanel>
+                        <!-- Título y acciones: sugerir, guardar Word y generar, arriba para dejar el alto a las listas -->
+                        <DockPanel Grid.ColumnSpan="3" Margin="2,0,0,6">
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <StackPanel x:Name="PensandoPlan" Orientation="Horizontal" Margin="0,0,14,0"
+                                            VerticalAlignment="Center" Visibility="Collapsed">
+                                    <Ellipse Style="{StaticResource PuntoNeuronaStyle}"/>
+                                    <Ellipse Style="{StaticResource PuntoNeuronaStyle}"/>
+                                    <Ellipse Style="{StaticResource PuntoNeuronaStyle}"/>
+                                    <Ellipse Style="{StaticResource PuntoNeuronaStyle}"/>
+                                    <TextBlock Text="Analizando los informes…" Margin="6,0,0,0"
+                                               Style="{StaticResource TextoSecundarioStyle}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <Button x:Name="SugerirIAButton" Style="{StaticResource BotonPrincipalStyle}"
+                                        IsEnabled="False" Click="SugerirIAButton_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Style="{StaticResource IconoStyle}" FontSize="14" Text="&#xEA80;" Margin="0,0,8,0"/>
+                                        <TextBlock Text="Sugerir con IA"/>
+                                    </StackPanel>
+                                </Button>
+                                <Border Width="1" Height="26" Margin="18,0" Background="{StaticResource BordeTarjetaBrush}"/>
+                                <CheckBox x:Name="GuardarWordCheckBox" IsChecked="True" Margin="0,0,14,0"
+                                          Content="Guardar también el Word" VerticalAlignment="Center"
+                                          ToolTip="Además del PDF, guarda el documento en Word (.docx)"/>
+                                <Button x:Name="GenerarButton" IsEnabled="False"
+                                        Style="{StaticResource BotonPrincipalStyle}" Click="GenerarButton_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Style="{StaticResource IconoStyle}" FontSize="14" Text="&#xE74E;" Margin="0,0,8,0"/>
+                                        <TextBlock Text="Generar plan PDF"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="Funciones evaluadas con IA" Style="{StaticResource TituloPasoStyle}"/>
+                                <TextBlock Style="{StaticResource IconoStyle}" FontSize="13" Text="&#xE946;" Margin="8,1,0,0"
+                                           Foreground="{StaticResource TextoSecundarioBrush}" Background="Transparent"
+                                           ToolTip="Estos documentos solo se envían a Gemini para sugerir conservados y alterados."/>
+                            </StackPanel>
+                        </DockPanel>
 
                         <StackPanel Grid.Row="1" Grid.Column="0">
                             <c:SelectorArchivo x:Name="Informe1Selector" Titulo="Información para la IA 1"
@@ -286,27 +313,8 @@
                                                PermiteQuitar="True" RutaCambiada="Informe_RutaCambiada"/>
                         </StackPanel>
 
-                        <StackPanel Grid.Row="2" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="4,6,0,10">
-                            <Button x:Name="SugerirIAButton" Style="{StaticResource BotonPrincipalStyle}"
-                                    IsEnabled="False" Click="SugerirIAButton_Click">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Style="{StaticResource IconoStyle}" FontSize="14" Text="&#xEA80;" Margin="0,0,8,0"/>
-                                    <TextBlock Text="Sugerir con IA"/>
-                                </StackPanel>
-                            </Button>
-                            <StackPanel x:Name="PensandoPlan" Orientation="Horizontal" Margin="16,0,0,0"
-                                        VerticalAlignment="Center" Visibility="Collapsed">
-                                <Ellipse Style="{StaticResource PuntoNeuronaStyle}"/>
-                                <Ellipse Style="{StaticResource PuntoNeuronaStyle}"/>
-                                <Ellipse Style="{StaticResource PuntoNeuronaStyle}"/>
-                                <Ellipse Style="{StaticResource PuntoNeuronaStyle}"/>
-                                <TextBlock Text="Analizando los informes…" Margin="6,0,0,0"
-                                           Style="{StaticResource TextoSecundarioStyle}" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </StackPanel>
-
                         <!-- Conservados | Alterados -->
-                        <Grid Grid.Row="3" Grid.ColumnSpan="3" x:Name="ColumnasPlan">
+                        <Grid Grid.Row="2" Grid.ColumnSpan="3" x:Name="ColumnasPlan" Margin="0,10,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="16"/>
@@ -362,21 +370,6 @@
                             </TextBox>
                         </Grid>
 
-                        <!-- Generar -->
-                        <StackPanel Grid.Row="4" Grid.ColumnSpan="3" Margin="0,10,0,0">
-                            <Border Style="{StaticResource SeparadorStyle}" Margin="0,0,0,10"/>
-                            <DockPanel>
-                                <Button x:Name="GenerarButton" DockPanel.Dock="Right" IsEnabled="False"
-                                        Style="{StaticResource BotonPrincipalStyle}" Click="GenerarButton_Click">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Style="{StaticResource IconoStyle}" FontSize="14" Text="&#xE74E;" Margin="0,0,8,0"/>
-                                        <TextBlock Text="Generar plan PDF"/>
-                                    </StackPanel>
-                                </Button>
-                                <CheckBox x:Name="GuardarWordCheckBox" IsChecked="True" Margin="2,0,0,0"
-                                          Content="Guardar también el Word (.docx)" VerticalAlignment="Center"/>
-                            </DockPanel>
-                        </StackPanel>
                     </Grid>
                 </c:Tarjeta>
 
@@ -391,16 +384,47 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*" MinHeight="90"/>
-                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <StackPanel Grid.ColumnSpan="3" Margin="2,0,0,8">
-                            <TextBlock Text="Evaluación del profesional" Style="{StaticResource TituloPasoStyle}"/>
-                            <TextBlock Style="{StaticResource TextoSecundarioStyle}"
-                                       Text="Las evoluciones se envían a Gemini como texto para redactar el informe."/>
-                        </StackPanel>
+                        <!-- Título y acciones: sugerir, guardar Word y generar -->
+                        <DockPanel Grid.ColumnSpan="3" Margin="2,0,0,6">
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <StackPanel x:Name="PensandoInforme" Orientation="Horizontal" Margin="0,0,14,0"
+                                            VerticalAlignment="Center" Visibility="Collapsed">
+                                    <Ellipse Style="{StaticResource PuntoNeuronaStyle}"/>
+                                    <Ellipse Style="{StaticResource PuntoNeuronaStyle}"/>
+                                    <Ellipse Style="{StaticResource PuntoNeuronaStyle}"/>
+                                    <Ellipse Style="{StaticResource PuntoNeuronaStyle}"/>
+                                    <TextBlock Text="Redactando el informe…" Margin="6,0,0,0"
+                                               Style="{StaticResource TextoSecundarioStyle}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <Button x:Name="RedactarIAButton" Style="{StaticResource BotonPrincipalStyle}"
+                                        IsEnabled="False" Click="RedactarIAButton_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Style="{StaticResource IconoStyle}" FontSize="14" Text="&#xEA80;" Margin="0,0,8,0"/>
+                                        <TextBlock Text="Sugerir con IA"/>
+                                    </StackPanel>
+                                </Button>
+                                <Border Width="1" Height="26" Margin="18,0" Background="{StaticResource BordeTarjetaBrush}"/>
+                                <CheckBox x:Name="GuardarWordInformeCheckBox" IsChecked="True" Margin="0,0,14,0"
+                                          Content="Guardar también el Word" VerticalAlignment="Center"
+                                          ToolTip="Además del PDF, guarda el documento en Word (.docx)"/>
+                                <Button x:Name="GenerarInformeButton" IsEnabled="False"
+                                        Style="{StaticResource BotonPrincipalStyle}" Click="GenerarInformeButton_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Style="{StaticResource IconoStyle}" FontSize="14" Text="&#xE74E;" Margin="0,0,8,0"/>
+                                        <TextBlock Text="Generar informe PDF"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="Evaluación del profesional" Style="{StaticResource TituloPasoStyle}"/>
+                                <TextBlock Style="{StaticResource IconoStyle}" FontSize="13" Text="&#xE946;" Margin="8,1,0,0"
+                                           Foreground="{StaticResource TextoSecundarioBrush}" Background="Transparent"
+                                           ToolTip="Las evoluciones se envían a Gemini como texto para redactar el informe."/>
+                            </StackPanel>
+                        </DockPanel>
 
                         <c:SelectorArchivo Grid.Row="1" Grid.Column="0" x:Name="EvaluacionSelector"
                                            Titulo="Evoluciones (RTF, Word, PDF o TXT)" PermiteQuitar="True"
@@ -420,27 +444,8 @@
                             </StackPanel>
                         </StackPanel>
 
-                        <StackPanel Grid.Row="2" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="4,6,0,10">
-                            <Button x:Name="RedactarIAButton" Style="{StaticResource BotonPrincipalStyle}"
-                                    IsEnabled="False" Click="RedactarIAButton_Click">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Style="{StaticResource IconoStyle}" FontSize="14" Text="&#xEA80;" Margin="0,0,8,0"/>
-                                    <TextBlock Text="Sugerir con IA"/>
-                                </StackPanel>
-                            </Button>
-                            <StackPanel x:Name="PensandoInforme" Orientation="Horizontal" Margin="16,0,0,0"
-                                        VerticalAlignment="Center" Visibility="Collapsed">
-                                <Ellipse Style="{StaticResource PuntoNeuronaStyle}"/>
-                                <Ellipse Style="{StaticResource PuntoNeuronaStyle}"/>
-                                <Ellipse Style="{StaticResource PuntoNeuronaStyle}"/>
-                                <Ellipse Style="{StaticResource PuntoNeuronaStyle}"/>
-                                <TextBlock Text="Redactando el informe…" Margin="6,0,0,0"
-                                           Style="{StaticResource TextoSecundarioStyle}" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </StackPanel>
-
                         <!-- Condición actual | Plan actual -->
-                        <Grid Grid.Row="3" Grid.ColumnSpan="3" x:Name="ColumnasInforme">
+                        <Grid Grid.Row="2" Grid.ColumnSpan="3" x:Name="ColumnasInforme" Margin="0,10,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="16"/>
@@ -494,21 +499,6 @@
                             </TextBox>
                         </Grid>
 
-                        <!-- Generar -->
-                        <StackPanel Grid.Row="4" Grid.ColumnSpan="3" Margin="0,10,0,0">
-                            <Border Style="{StaticResource SeparadorStyle}" Margin="0,0,0,10"/>
-                            <DockPanel>
-                                <Button x:Name="GenerarInformeButton" DockPanel.Dock="Right" IsEnabled="False"
-                                        Style="{StaticResource BotonPrincipalStyle}" Click="GenerarInformeButton_Click">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Style="{StaticResource IconoStyle}" FontSize="14" Text="&#xE74E;" Margin="0,0,8,0"/>
-                                        <TextBlock Text="Generar informe PDF"/>
-                                    </StackPanel>
-                                </Button>
-                                <CheckBox x:Name="GuardarWordInformeCheckBox" IsChecked="True" Margin="2,0,0,0"
-                                          Content="Guardar también el Word (.docx)" VerticalAlignment="Center"/>
-                            </DockPanel>
-                        </StackPanel>
                     </Grid>
                 </c:Tarjeta>
             </Grid>
